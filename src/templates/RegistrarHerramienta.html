@@ -1,0 +1,122 @@
+{%extends './Base.html'%}
+{%block title%}
+Registro de Herramienta
+{%endblock%}
+{%block body%}
+    <nav class="navbar navbar-light bg-light justify-content-between">
+        <a class="navbar-brand">Hola, {{ session['nombre'] }}</a>
+
+            {%if session['rol'] == 1%}
+                <a class="navbar-brand">Rol: Administrador</a>
+            {%elif session['rol'] == 2%}
+                <a class="navbar-brand">Rol: Almacenista</a>
+            {%else%}
+                <a class="navbar-brand">Rol: Tecnico</a>
+            {%endif%}
+
+        <form action="{{ url_for('logout') }}" method="get" class="form-inline">
+            <button type="submit" class="btn btn-outline-danger">Salir</button>
+        </form>
+    </nav>
+
+    <nav  class="navbar navbar-light" style="background-color: #6a98b9;">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{{ url_for('index') }}">ENERGY SITE, S.A. DE C.V.</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavDropdown">
+        <ul class="navbar-nav">
+            <li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="{{ url_for('regisherra') }}">Registrar herramienta</a>
+            </li>
+            <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('regisherra') }}">Historial de movimientos</a>
+            </li>
+            <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('regisherra') }}">Checar asignacion de herramienta</a>
+            </li>
+            <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('regisherra') }}">Buscador de herramienta</a>
+            </li>
+            <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('regisherra') }}">Reportes</a>
+            </li>
+            <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Herramienta
+            </a>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="{{ url_for('regisherra') }}">Entrada</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('regisherra') }}">Salida</a></li>
+            </ul>
+            </li>
+        </ul>
+        </div>
+    </div>
+</nav>
+    
+
+<div class="container vh-100 d-flex justify-content-center align-items-center">
+    <div class="w-100" style="max-width: 400px;">
+        <!-- ALERTA -->
+        {%with mensajes = get_flashed_messages(with_categories=true)%}
+            {%if mensajes%}
+                {%for categoria, mensaje in mensajes%}
+                    <div class="alert alert-success" role="alert">
+                    {{mensaje}}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                {%endfor%}
+            {%endif%}
+        {%endwith%}
+    </div>
+
+    <form action="/regisherra" method="POST">
+        <label for="basic-url" class="form-label">Herramienta</label>
+        <div class="input-group mb-3">
+            <span class="input-group-text">Nombre</span>
+            <input type="text" placeholder="nombre herramienta" name="nombreh" id="nombreh" class="form-control">
+            <span class="input-group-text">Tipo</span>
+            <input type="text" placeholder="Tipo Herramienta" name="tipoh" id="tipoh" class="form-control">
+            <span class="input-group-text">Marca</span>
+            <input type="text" placeholder="brand" name="brandh" id="brandh" class="form-control">
+        </div>
+
+        <label for="basic-url" class="form-label">Seriales</label>
+        <div class="input-group mb-3">
+            <span class="input-group-text">Modelo</span>
+            <input type="text" placeholder="Modelo" class="form-control" name="modeloh" id="modeloh" class="form-control">
+            <span class="input-group-text"> Numero de serie</span>
+            <input type="text" placeholder="Numero de serie" class="form-control" name="serieh" id="serieh"class="form-control">
+            <span class="input-group-text">Codigo Interno</span>
+            <input type="text" placeholder="Codigo Interno" name="codigoinh" id="codigoinh" class="form-control">
+        </div>
+
+        <label for="basic-url" class="form-label">Status</label>
+        <div class="input-group mb-3">
+            <span for="statush" class="input-group-text">Seleciona el estatus de la herramienta</span>
+            <select name="statush" id="statush" class="form-select" aria-label="Default select example">
+                <option value="operativa">operativa</option>
+                <option value="en_reparacion">En Reparacion</option>
+                <option value="extraviada">Extraviada</option>
+                <option value="obsoleta">Obsoleta</option>
+            </select>
+        </div>
+
+        <label for="basic-url" class="form-label">Asignacion</label>
+        <div class="input-group mb-3">
+            <span class="input-group-text">Ubicacion</span>
+            <input type="text" placeholder="Localidad" name="localidadh" id="localidadh" class="form-control" class="form-control">
+            <span class="input-group-text">Responsable</span>
+            <input type="text" placeholder="Nombre" name="responsableh" id="responsableh" class="form-control" class="form-control">
+        </div>
+
+        <div class="input-group mb-3">
+            <span class="input-group-text">$</span>
+            <input type="text" placeholder="Precio" name="precioh" id="precioh" class="form-control">
+            <span class="input-group-text">Observaciones</span>
+            <textarea class="form-control" name="observacionesh" id="observacionesh" aria-label="With textarea"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Ingresar herramienta</button>
+    </form>
+{%endblock%}

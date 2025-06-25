@@ -1,0 +1,39 @@
+{%extends './Base.html'%}
+{%block title%}Login{%endblock%}
+{%block body%}
+
+
+<div class="container vh-100 d-flex justify-content-center align-items-center">
+    <div class="w-100" style="max-width: 400px;">
+        <!-- ALERTA -->
+        {%with mensajes = get_flashed_messages(with_categories=true)%}
+            {%if mensajes%}
+                {%for categoria, mensaje in mensajes%}
+                    <div class="alert alert-{{categoria}} alert-danger alert-dismissible fade show" role="alert">
+                    {{mensaje}}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                {%endfor%}
+            {%endif%}
+        {%endwith%}
+    </div>
+    <form action="/login" method="POST" class="w-400" style="max-width: 400px;">
+        <div class="mb-3">
+            <label for="username" class="form-label">Usuario</label>
+            <div class="input-group">
+                <span class="input-group-text" id="addon-wrapping">@</span>
+                <input type="text" id="username" name="username" placeholder="UserName" class="form-control" aria-describedby="addon-wrapping">
+            </div>
+            <small id="emailHelp" class="form-text text-muted">Nunca compartas tus credenciales con nadie.</small>
+        </div>
+
+        <div class="mb-3">
+            <label for="password" class="form-label">Contraseña</label>
+            <div class="input-group">
+                <span class="input-group-text">🔒</span>
+                <input type="password" id="password" name="password" placeholder="Password" class="form-control">
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100">Sign in</button>
+    </form>
+{%endblock%}
