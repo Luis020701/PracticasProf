@@ -30,21 +30,39 @@ def login():
         user=str(request.form['username']).strip()
         passw=str(request.form['password']).strip()
         validador = ValidarLogin()
-        if validador.validaruser(user) is None :
-            print("error usuario")
-            flash('Error de usuario!', 'error')#mando un mensaje de error a la plantilla html
-            return render_template('auth/Login.html')
-        elif validador.validapswd(passw,user) is False: 
-            print("error contraseña")
-            flash('Error de contraseña!', 'error')#mando un mensaje de error a la plantilla html
-            return render_template('auth/Login.html')
+        oku,valoru = validador.validaruser(user)
+        okp, valorp = validador.validapswd(passw,user)
+        okon, datos = validador.obtenernombre(user)
+        if not oku:#validamos si hay conexion a la db
+            print("error")
+            flash(valoru,'error')#enviamos el error de la falta de conexion
+            return render_template('auth/Login.html')#renderizamos la pagina de login
         else:
-            session['User']=validador.obtenernombre(user)[1]#recupero el user
-            session['nombre']=validador.obtenernombre(user)[3]#recupero el nombre
-            session['rol']=validador.obtenernombre(user)[4]#recupero el nombre
-            #y los mando a la sesion redireccionando a index
-            validador.cerrarcursor()
-            return render_template('index.html')
+            if valoru is None :
+                print("error usuario")
+                flash('Error de usuario!', 'error')#mando un mensaje de error a la plantilla html
+                return render_template('auth/Login.html')
+            
+            elif not okp:
+                print("error")
+                flash(valorp,'error')#enviamos el error de la falta de conexion
+                return render_template('auth/Login.html')#renderizamos la pagina de login   
+            elif not valorp:
+                print("error contraseña")
+                flash('Error de contraseña!', 'error')#mando un mensaje de error a la plantilla html
+                return render_template('auth/Login.html')
+            else:
+                if not okon:
+                    print("error ")
+                    flash(datos, 'error')#mando un mensaje de error a la plantilla html
+                    return render_template('auth/Login.html')
+                else:
+                    session['User']=datos[1]#recupero el user
+                    session['nombre']=datos[3]#recupero el nombre
+                    session['rol']=datos[4]#recupero el nombre
+                    #y los mando a la sesion redireccionando a index
+                    return render_template('index.html')
+
     else:
         #Si no, significa que es GET y renderiza la plantilla Login.html"""
         return render_template('auth/Login.html')
@@ -64,7 +82,11 @@ def regisherra():
         precioh = Decimal(request.form['precioh'].strip())
         observacionesh = request.form['observacionesh'].strip()
         alta = AltaHerramientas()
-        if alta.altah(nombreh,tipoh,brandh,modeloh,serieh,codigoinh,statush,localidadh,responsableh,precioh,observacionesh) is True:
+        if not alta.altah(nombreh,tipoh,brandh,modeloh,serieh,codigoinh,statush,localidadh,responsableh,precioh,observacionesh)[0]:
+            print("error")
+            flash(alta.altah(nombreh,tipoh,brandh,modeloh,serieh,codigoinh,statush,localidadh,responsableh,precioh,observacionesh)[1],'error')#enviamos el error de la falta de conexion
+            return render_template("RegistrarHerramienta.html")
+        elif alta.altah(nombreh,tipoh,brandh,modeloh,serieh,codigoinh,statush,localidadh,responsableh,precioh,observacionesh) is True:
             flash('Insercion correcta', 'info')#mando un mensaje de error a la plantilla html
             return render_template("RegistrarHerramienta.html")
     else: 

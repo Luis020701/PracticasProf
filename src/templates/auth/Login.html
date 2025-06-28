@@ -1,8 +1,6 @@
 {%extends './Base.html'%}
 {%block title%}Login{%endblock%}
 {%block body%}
-
-
 <div class="container vh-100 d-flex justify-content-center align-items-center">
     <div class="w-100" style="max-width: 400px;">
         <!-- ALERTA -->
@@ -16,24 +14,52 @@
             {%endif%}
         {%endwith%}
     </div>
-    <form action="/login" method="POST" class="w-400" style="max-width: 400px;">
-        <div class="mb-3">
-            <label for="username" class="form-label">Usuario</label>
-            <div class="input-group">
-                <span class="input-group-text" id="addon-wrapping">@</span>
-                <input type="text" id="username" name="username" placeholder="UserName" class="form-control" aria-describedby="addon-wrapping">
-            </div>
-            <small id="emailHelp" class="form-text text-muted">Nunca compartas tus credenciales con nadie.</small>
-        </div>
 
-        <div class="mb-3">
-            <label for="password" class="form-label">Contraseña</label>
-            <div class="input-group">
-                <span class="input-group-text">🔒</span>
-                <input type="password" id="password" name="password" placeholder="Password" class="form-control">
-            </div>
-        </div>
+<body class="bg-light">
 
-        <button type="submit" class="btn btn-primary w-100">Sign in</button>
-    </form>
+    <div class="container d-flex justify-content-center align-items-center login-container">
+        <form action="/login" method="POST" class="bg-white p-4 shadow rounded" style="max-width: 400px; width: 100%;">
+            <img src="{{ url_for('static', filename='LogoTITEmpresarial.png') }}" alt="Logo" class="img-fluid mx-auto d-block mb-3" style="max-width: 150px;">
+
+            <h3 class="text-center mb-4">Iniciar sesión</h3>
+
+            <div class="mb-3">
+                <label for="username" class="form-label">Usuario</label>
+                <div class="input-group">
+                    <span class="input-group-text" id="addon-wrapping">@</span>
+                    <input type="text" id="username" name="username" placeholder="UserName" class="form-control" aria-describedby="addon-wrapping" required>
+                </div>
+                <small class="form-text text-muted">Nunca compartas tus credenciales con nadie.</small>
+            </div>
+
+            <div class="mb-3">
+                <label for="password" class="form-label">Contraseña</label>
+                <div class="input-group">
+                    <span class="input-group-text">🔒</span>
+                    <input type="password" id="password" name="password" placeholder="Password" class="form-control" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 btn btn-primary w-100 d-flex align-items-center justify-content-center" id="loginBtn">
+                <span id="btnText">Iniciar sesion</span>
+                <div id="inlineSpinner" class="spinner-border text-light spinner-border-sm ms-2 d-none" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </button>
+            <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                const form = document.querySelector("form");
+                const spinner = document.getElementById("inlineSpinner");
+                const btn = document.getElementById("loginBtn");
+                const btnText = document.getElementById("btnText");
+
+                form.addEventListener("submit", function () {
+                    spinner.classList.remove("d-none");
+                    btn.disabled = true;
+                    btnText.textContent = "Cargando...";
+                });
+            });
+            </script>
+        </form>
+    </div>
 {%endblock%}

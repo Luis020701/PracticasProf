@@ -15,6 +15,6 @@ class Conexion:
                 database='inventario'
             )
             if Con.is_connected():
-                return Con
+                return True, Con
         except Error as e:
-            return e
+            return False, str(e)

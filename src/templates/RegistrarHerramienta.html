@@ -117,6 +117,25 @@ Registro de Herramienta
             <span class="input-group-text">Observaciones</span>
             <textarea class="form-control" name="observacionesh" id="observacionesh" aria-label="With textarea"></textarea>
         </div>
-        <button type="submit" class="btn btn-primary w-100">Ingresar herramienta</button>
+        <button type="submit" class="btn btn-primary w-100 btn btn-primary w-100 d-flex align-items-center justify-content-center" id="loginBtn">
+            <span id="btnText">Registrar Herramienta</span>
+            <div id="inlineSpinner" class="spinner-border text-light spinner-border-sm ms-2 d-none" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </button>
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+            const form = document.querySelector("form");
+            const spinner = document.getElementById("inlineSpinner");
+            const btn = document.getElementById("loginBtn");
+            const btnText = document.getElementById("btnText");
+
+            form.addEventListener("submit", function () {
+                spinner.classList.remove("d-none");
+                btn.disabled = true;
+                btnText.textContent = "Cargando...";
+            });
+         });
+            </script>
     </form>
 {%endblock%}
