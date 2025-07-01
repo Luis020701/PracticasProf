@@ -72,8 +72,13 @@ Registro de Herramienta
         {% endwith %}
 
         <!-- FORMULARIO -->
-        <form action="/regisherra" method="POST" class="bg-white p-4 shadow rounded">
-            <h4><label class="form-label">Escribe el Codigo interno para escoger la Herramienta a Editar</label></h4>
+        <form action="/EdiHerra" method="GET" class="bg-white p-4 shadow rounded">
+                <h4><span class="input-group-text">Ingresa el Código Interno para empezar a editar</span></h4>
+                <input type="text" placeholder="Codigo Interno" name="codigoinh" class="form-control" required>
+        </form>
+
+        <form action="/EdiHerra" method="POST" class="bg-white p-4 shadow rounded">
+            <h4><label class="form-label">Actualiza los datos que desees</label></h4>
             <div class="input-group mb-3">
         
                 <span class="input-group-text">Nombre</span>
@@ -90,8 +95,6 @@ Registro de Herramienta
                 <input type="text" placeholder="Modelo" name="modeloh" class="form-control">
                 <span class="input-group-text">Número de serie</span>
                 <input type="text" placeholder="Numero de serie" name="serieh" class="form-control">
-                <span class="input-group-text">Código Interno</span>
-                <input type="text" placeholder="Codigo Interno" name="codigoinh" class="form-control" required>
             </div>
 
             <label class="form-label">Status</label>

@@ -118,10 +118,14 @@ def EliHerra():
         return render_template('EliminarHerramienta.html')
 @Inv.route('/EdiHerra', methods=['GET', 'POST'])
 def EdiHerra():
+    """Funcion para editar los datos de la herramienta"""
     if request.method == 'POST':
         pass
     else:
-        return render_template('EditarHerramienta.html')
+        codigoinh= request.form.get('','').strip()
+        edi=AltaHerramientas()
+        edi.cargardatos(codigoinh)
+        return render_template('EditarHerramienta.html')#Renderizo la pagina y envio los datos actuales
 @Inv.route('/logout')
 def logout():
     """Funcion para cerrar la sesion activa"""

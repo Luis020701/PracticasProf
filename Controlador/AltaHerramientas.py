@@ -38,7 +38,6 @@ class AltaHerramientas :
                 return False, str(e)
             finally:#ejecuta si o si el cerrado del cursor para no dejarlo abierto
                 cur.close()
-    
     def eliminarh(self, codigoinh):
         """Recibo la el codigo interno para poder eliminar  la herramienta"""
         db = Conexion()
@@ -60,4 +59,9 @@ class AltaHerramientas :
                 return False, str(e)
             finally:#ejecuta si o si el cerrado del cursor para no dejarlo abierto
                 cur.close()
-            
+                
+    def editah(self):
+        """Funcion para editar """
+        pass
+    def cargardatos(self,codigoinh):
+        pass
