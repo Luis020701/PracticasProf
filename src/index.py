@@ -8,7 +8,7 @@ from Controlador.ValidarLogin import ValidarLogin
 from flask import Flask,render_template, request, redirect, url_for, session,flash
 from flask_mysqldb import MySQL
 from Config import Config
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from Controlador.AltaHerramientas import AltaHerramientas
 
 Inv = Flask(__name__)
@@ -35,26 +35,26 @@ def login():
         okon, datos = validador.obtenernombre(user)
         if not oku:#validamos si hay conexion a la db
             print("error")
-            flash(valoru,'error')#enviamos el error de la falta de conexion
+            flash(valoru,'danger')#enviamos el error de la falta de conexion
             return render_template('auth/Login.html')#renderizamos la pagina de login
         else:
             if valoru is None :
                 print("error usuario")
-                flash('Error de usuario!', 'error')#mando un mensaje de error a la plantilla html
+                flash('Error de usuario!', 'danger')#mando un mensaje de error a la plantilla html
                 return render_template('auth/Login.html')
             
             elif not okp:
                 print("error")
-                flash(valorp,'error')#enviamos el error de la falta de conexion
+                flash(valorp,'danger')#enviamos el error de la falta de conexion
                 return render_template('auth/Login.html')#renderizamos la pagina de login   
             elif not valorp:
                 print("error contraseña")
-                flash('Error de contraseña!', 'error')#mando un mensaje de error a la plantilla html
+                flash('Error de contraseña!', 'danger')#mando un mensaje de error a la plantilla html
                 return render_template('auth/Login.html')
             else:
                 if not okon:
                     print("error ")
-                    flash(datos, 'error')#mando un mensaje de error a la plantilla html
+                    flash(datos, 'danger')#mando un mensaje de error a la plantilla html
                     return render_template('auth/Login.html')
                 else:
                     session['User']=datos[1]#recupero el user
@@ -70,28 +70,58 @@ def login():
 def regisherra():
     """Metodo que registra las herramientas en BD"""
     if request.method == 'POST':
-        nombreh = request.form['nombreh'].strip()
-        tipoh = request.form['tipoh'].strip()
-        brandh = request.form['brandh'].strip()
-        modeloh = request.form['modeloh'].strip()
-        serieh = request.form['serieh'].strip()
-        codigoinh = request.form['codigoinh'].strip()
-        statush = request.form['statush'].strip()
-        localidadh = request.form['localidadh'].strip()
-        responsableh = request.form['responsableh'].strip()
-        precioh = Decimal(request.form['precioh'].strip())
-        observacionesh = request.form['observacionesh'].strip()
+         
+        nombreh = request.form.get('nombreh', '').strip()
+        tipoh = request.form.get('tipoh', '').strip()
+        brandh = request.form.get('brandh', '').strip()
+        modeloh = request.form.get('modeloh', '').strip()
+        serieh = request.form.get('serieh', '').strip()
+        codigoinh = request.form.get('codigoinh', '').strip() or None
+        statush = request.form.get('statush', '').strip()
+        localidadh = request.form.get('localidadh', '').strip()
+        responsableh = request.form.get('responsableh', '').strip()
+        precioh = Decimal(request.form.get('precioh','').strip())
+        observacionesh = request.form.get('observacionesh', '').strip()
+        precioh_raw = request.form.get('precioh', '').strip()
+
+        try:
+            precioh = Decimal(precioh_raw) if precioh_raw else Decimal('0')
+        except InvalidOperation:
+            flash('Precio inválido. Por favor ingresa un número válido.', 'error')
+            return render_template("RegistrarHerramienta.html")
         alta = AltaHerramientas()
-        if not alta.altah(nombreh,tipoh,brandh,modeloh,serieh,codigoinh,statush,localidadh,responsableh,precioh,observacionesh)[0]:
+        ok, valor = alta.altah(nombreh,tipoh,brandh,modeloh,serieh,codigoinh,statush,localidadh,responsableh,precioh,observacionesh)
+        if not ok:
             print("error")
-            flash(alta.altah(nombreh,tipoh,brandh,modeloh,serieh,codigoinh,statush,localidadh,responsableh,precioh,observacionesh)[1],'error')#enviamos el error de la falta de conexion
+            flash(valor,'error')#enviamos el error de la falta de conexion
             return render_template("RegistrarHerramienta.html")
-        elif alta.altah(nombreh,tipoh,brandh,modeloh,serieh,codigoinh,statush,localidadh,responsableh,precioh,observacionesh) is True:
-            flash('Insercion correcta', 'info')#mando un mensaje de error a la plantilla html
-            return render_template("RegistrarHerramienta.html")
+        elif valor:
+            flash('Insercion correcta', 'info')#mando un mensaje de exito a la plantilla html
+            return render_template("RegistrarHerramienta.html", modo='Crear')
     else: 
         #Si no es get renderizo la pagina de registro
-        return render_template("RegistrarHerramienta.html")
+        return render_template("RegistrarHerramienta.html", modo='Crear')
+@Inv.route('/EliHerra', methods=['GET', 'POST'])
+def EliHerra():
+    """Este metodo Funciona para Eliminar una herramienta de el inventario"""
+    if request.method=='POST':
+        codiin= request.form.get('codigoinh')
+        elimi = AltaHerramientas()
+        ok, valor = elimi.eliminarh(codiin)
+        if not ok:
+            flash(valor, 'danger')
+            return render_template('EliminarHerramienta.html')
+        else:
+            flash('Eliminado con exito','info')
+            return render_template('EliminarHerramienta.html')
+    else:
+        return render_template('EliminarHerramienta.html')
+@Inv.route('/EdiHerra', methods=['GET', 'POST'])
+def EdiHerra():
+    if request.method == 'POST':
+        pass
+    else:
+        return render_template('EditarHerramienta.html')
 @Inv.route('/logout')
 def logout():
     """Funcion para cerrar la sesion activa"""

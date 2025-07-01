@@ -73,7 +73,7 @@ Registro de Herramienta
 
         <!-- FORMULARIO -->
         <form action="/regisherra" method="POST" class="bg-white p-4 shadow rounded">
-            <h4><label class="form-label">Registrar Herramienta</label></h4>
+            <h4><label class="form-label">Escribe el Codigo interno para escoger la Herramienta a Editar</label></h4>
             <div class="input-group mb-3">
         
                 <span class="input-group-text">Nombre</span>
@@ -115,13 +115,13 @@ Registro de Herramienta
 
             <div class="input-group mb-3">
                 <span class="input-group-text">$</span>
-                <input type="number" placeholder="Precio" name="precioh" class="form-control" min="0" step="0.01" required>
+                <input type="number" placeholder="Precio" name="precioh" class="form-control" min="0" step="0.01" >
                 <span class="input-group-text">Observaciones</span>
                 <textarea class="form-control" name="observacionesh"></textarea>
             </div>
 
-            <button type="submit" class="btn btn-primary w-100 d-flex align-items-center justify-content-center" id="regisBtn">
-                <span id="btnText">Registrar Herramienta</span>
+            <button type="submit" class="btn btn-primary w-100 d-flex align-items-center justify-content-center" id="EdiBtn">
+                <span id="btnText">Editar Herramienta</span>
                 <div id="inlineSpinner" class="spinner-border text-light spinner-border-sm ms-2 d-none" role="status">
                     <span class="visually-hidden">Loading...</span>
                 </div>
@@ -130,7 +130,7 @@ Registro de Herramienta
                 document.addEventListener("DOMContentLoaded", function () {
                 const form = document.querySelector("form");
                 const spinner = document.getElementById("inlineSpinner");
-                const btn = document.getElementById("regisBtn");
+                const btn = document.getElementById("EdiBtn");
                 const btnText = document.getElementById("btnText");
 
                 form.addEventListener("submit", function () {

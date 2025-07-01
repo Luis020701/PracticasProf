@@ -72,78 +72,53 @@ Registro de Herramienta
         {% endwith %}
 
         <!-- FORMULARIO -->
-        <form action="/regisherra" method="POST" class="bg-white p-4 shadow rounded">
-            <h4><label class="form-label">Registrar Herramienta</label></h4>
-            <div class="input-group mb-3">
-        
-                <span class="input-group-text">Nombre</span>
-                <input type="text" placeholder="nombre herramienta" name="nombreh" class="form-control">
-                <span class="input-group-text">Tipo</span>
-                <input type="text" placeholder="Tipo Herramienta" name="tipoh" class="form-control">
-                <span class="input-group-text">Marca</span>
-                <input type="text" placeholder="brand" name="brandh" class="form-control">
-            </div>
+        <form id="formEliminar" action="/EliHerra" method="POST" class="bg-white p-4 shadow rounded">
+            <h4><label class="form-label">Escribe el Código interno para escoger la Herramienta a Eliminar</label></h4>
 
-            <label class="form-label">Seriales</label>
+            <label class="form-label">Código Interno</label>
             <div class="input-group mb-3">
-                <span class="input-group-text">Modelo</span>
-                <input type="text" placeholder="Modelo" name="modeloh" class="form-control">
-                <span class="input-group-text">Número de serie</span>
-                <input type="text" placeholder="Numero de serie" name="serieh" class="form-control">
                 <span class="input-group-text">Código Interno</span>
-                <input type="text" placeholder="Codigo Interno" name="codigoinh" class="form-control" required>
+                <input type="text" placeholder="Código Interno" name="codigoinh" id="codigoinh" class="form-control" required>
             </div>
-
-            <label class="form-label">Status</label>
-            <div class="input-group mb-3">
-                <span class="input-group-text">Estatus</span>
-                <select name="statush" class="form-select">
-                    <option value="operativa">Operativa</option>
-                    <option value="en_reparacion">En Reparación</option>
-                    <option value="extraviada">Extraviada</option>
-                    <option value="obsoleta">Obsoleta</option>
-                </select>
-            </div>
-
-            <label class="form-label">Asignación</label>
-            <div class="input-group mb-3">
-                <span class="input-group-text">Ubicación</span>
-                <input type="text" placeholder="Localidad" name="localidadh" class="form-control">
-                <span class="input-group-text">Responsable</span>
-                <input type="text" placeholder="Nombre" name="responsableh" class="form-control">
-            </div>
-
-            <div class="input-group mb-3">
-                <span class="input-group-text">$</span>
-                <input type="number" placeholder="Precio" name="precioh" class="form-control" min="0" step="0.01" required>
-                <span class="input-group-text">Observaciones</span>
-                <textarea class="form-control" name="observacionesh"></textarea>
-            </div>
-
-            <button type="submit" class="btn btn-primary w-100 d-flex align-items-center justify-content-center" id="regisBtn">
-                <span id="btnText">Registrar Herramienta</span>
+            
+            <button type="button" class="btn btn-danger w-100 d-flex align-items-center justify-content-center" id="EliBtn">
+                <span id="btnText">Eliminar Herramienta</span>
                 <div id="inlineSpinner" class="spinner-border text-light spinner-border-sm ms-2 d-none" role="status">
                     <span class="visually-hidden">Loading...</span>
                 </div>
             </button>
-            <script>
-                document.addEventListener("DOMContentLoaded", function () {
-                const form = document.querySelector("form");
-                const spinner = document.getElementById("inlineSpinner");
-                const btn = document.getElementById("regisBtn");
-                const btnText = document.getElementById("btnText");
-
-                form.addEventListener("submit", function () {
-                    spinner.classList.remove("d-none");
-                    btn.disabled = true;
-                    btnText.textContent = "Cargando...";
-                });
-            });
-            </script>
-        </form>
-    </div>
         </form>
     </div>
 </div>
 
-{%endblock%}
+<!-- SweetAlert y lógica de confirmación -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("formEliminar");
+    const btn = document.getElementById("EliBtn");
+    const spinner = document.getElementById("inlineSpinner");
+    const btnText = document.getElementById("btnText");
+
+    btn.addEventListener("click", function () {
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: "Esta acción eliminará la herramienta del sistema.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                spinner.classList.remove("d-none");
+                btn.disabled = true;
+                btnText.textContent = "Cargando...";
+                form.submit();
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

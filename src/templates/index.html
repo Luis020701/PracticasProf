@@ -29,9 +29,6 @@ Home
         <div class="collapse navbar-collapse" id="navbarNavDropdown">
         <ul class="navbar-nav">
             <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="{{ url_for('regisherra') }}">Registrar herramienta</a>
-            </li>
-            <li class="nav-item">
             <a class="nav-link" href="{{ url_for('regisherra') }}">Historial de movimientos</a>
             </li>
             <li class="nav-item">
@@ -50,6 +47,9 @@ Home
             <ul class="dropdown-menu">
                 <li><a class="dropdown-item" href="{{ url_for('regisherra') }}">Entrada</a></li>
                 <li><a class="dropdown-item" href="{{ url_for('regisherra') }}">Salida</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('regisherra') }}">Registrar</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('EdiHerra') }}">Editar</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('EliHerra') }}">Eliminar</a></li>
             </ul>
             </li>
         </ul>
