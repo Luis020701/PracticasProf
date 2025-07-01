@@ -29,13 +29,14 @@ class AltaHerramientas :
                 obs
             )
             
-            try:
+            try:#El try evalua la sentencia y ejecuta el codigo en caso de que funcione
                 cur.execute(sql,datos)
+                Conn.commit()
                 return True, "correcto"
-            except Error as e:
+            except Error as e:#except regresa False para indicar el error e indica cual es el error con la variable e
                 Conn.rollback()#Revierto los cambios si hay error
-                return False, e
-            finally:
+                return False, str(e)
+            finally:#ejecuta si o si el cerrado del cursor para no dejarlo abierto
                 cur.close()
     
     def eliminarh(self, codigoinh):
@@ -47,16 +48,16 @@ class AltaHerramientas :
         else:
             cur = Conn.cursor()
             sql = "DELETE FROM tools WHERE internal_code = %s"
-            try:
+            try:#El try evalua la sentencia y ejecuta el codigo en caso de que funcione
                 cur.execute(sql,(codigoinh,))
                 if cur.rowcount == 0:#Verifico si encontro el registro
                     return False, "Herramienta no encontrada"
                 else: 
                     Conn.commit()
                     return True, "Correcto"
-            except Error as e:
+            except Error as e:#except regresa False para indicar el error e indica cual es el error con la variable e
                 Conn.rollback()#Revierto los cambios
-                return False, e
-            finally:
+                return False, str(e)
+            finally:#ejecuta si o si el cerrado del cursor para no dejarlo abierto
                 cur.close()
             
