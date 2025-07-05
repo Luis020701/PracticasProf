@@ -96,7 +96,7 @@ def regisherra():
             flash(valor,'error')#enviamos el error de la falta de conexion
             return render_template("RegistrarHerramienta.html")
         elif valor:
-            flash('Insercion correcta', 'info')#mando un mensaje de exito a la plantilla html
+            flash('Insercion correcta', 'success')#mando un mensaje de exito a la plantilla html
             return render_template("RegistrarHerramienta.html", modo='Crear')
     else: 
         #Si no es get renderizo la pagina de registro
@@ -120,12 +120,43 @@ def EliHerra():
 def EdiHerra():
     """Funcion para editar los datos de la herramienta"""
     if request.method == 'POST':
-        pass
+        nombreh = request.form.get('nombreh', '').strip()
+        tipoh = request.form.get('tipoh', '').strip()
+        brandh = request.form.get('brandh', '').strip()
+        modeloh = request.form.get('modeloh', '').strip()
+        serieh = request.form.get('serieh', '').strip()
+        codigoinh = request.form.get('codigoinh', '').strip() or None
+        statush = request.form.get('statush', '').strip()
+        localidadh = request.form.get('localidadh', '').strip()
+        responsableh = request.form.get('responsableh', '').strip()
+        precioh = Decimal(request.form.get('precioh','').strip())
+        observacionesh = request.form.get('observacionesh', '').strip()
+        precioh_raw = request.form.get('precioh', '').strip()
+        try:
+            precioh = Decimal(precioh_raw) if precioh_raw else Decimal('0')#Intento hacer la conversiona decimal y si no
+        except InvalidOperation:
+            flash('Precio inválido. Por favor ingresa un número válido.', 'error')#Retorno un error
+            return render_template("RegistrarHerramienta.html")
+        ediH= AltaHerramientas()
+        ok, valor= ediH.editah(nombreh,tipoh,brandh,modeloh,serieh,codigoinh,statush,localidadh,responsableh,precioh,observacionesh)
+        if not ok:
+            flash(valor,'danger')
+            return render_template('EditarHerramienta.html', datos=None)
+        else:
+            flash('Actualizacion de datos Exitosa!','success')
+            return render_template('EditarHerramienta.html', datos=None)
     else:
-        codigoinh= request.form.get('','').strip()
+        codigoinh= request.args.get('codigoinh','').strip()
+        if codigoinh == '':
+            return render_template('EditarHerramienta.html', datos=None)
         edi=AltaHerramientas()
-        edi.cargardatos(codigoinh)
-        return render_template('EditarHerramienta.html')#Renderizo la pagina y envio los datos actuales
+        ok, valor = edi.cargardatos(codigoinh)
+        if not ok:
+            flash(valor,'danger')
+            return render_template('EditarHerramienta.html', datos = None)
+        else:
+            flash('Herramienta Encontrada!','info')
+            return render_template('EditarHerramienta.html', datos=valor)#Renderizo la pagina y envio los datos actuales
 @Inv.route('/logout')
 def logout():
     """Funcion para cerrar la sesion activa"""

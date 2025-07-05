@@ -38,6 +38,7 @@ class AltaHerramientas :
                 return False, str(e)
             finally:#ejecuta si o si el cerrado del cursor para no dejarlo abierto
                 cur.close()
+                Conn.close()
     def eliminarh(self, codigoinh):
         """Recibo la el codigo interno para poder eliminar  la herramienta"""
         db = Conexion()
@@ -59,9 +60,58 @@ class AltaHerramientas :
                 return False, str(e)
             finally:#ejecuta si o si el cerrado del cursor para no dejarlo abierto
                 cur.close()
+                Conn.close()
                 
-    def editah(self):
+    def editah(self,nombre,tipo,brand,modelo,serie,codigoin,status,local,respon,precio,obs):
         """Funcion para editar """
-        pass
+        db = Conexion()
+        ok, Conn = db.conectar()
+        if not ok:
+            return False, Conn
+        else:
+            sql= "UPDATE TOOLS SET name=%s, brand=%s, model=%s, serial_number=%s, tool_type=%s, status=%s, location=%s, responsible=%s, price=%s, created_at=%s, observations=%s WHERE internal_code = %s"
+            datos=(#Tupla para la sentencia parametrizada
+                nombre,
+                brand,
+                modelo,
+                serie,
+                tipo,
+                status,
+                local,
+                respon,
+                precio,
+                datetime.now(),#Indico la fecha y hora actual
+                obs,
+                codigoin
+            )
+            try:
+                cur = Conn.cursor()
+                cur.execute(sql,datos)
+                Conn.commit()
+                return True, 'Herramienta Actualizada'
+            except Error as e:
+                return False, str(e)
+            finally:
+                cur.close()
+                Conn.close()
     def cargardatos(self,codigoinh):
-        pass
+        """Uso esta funcion para cargar los datos almacenados para posteriormente ser editados"""
+        db = Conexion()
+        ok, Conn = db.conectar()
+        if not ok:
+            return False, Conn
+        else:
+            cur = Conn.cursor(dictionary=True)
+            sql = "SELECT * from tools WHERE internal_code = %s"
+            try:
+                cur.execute(sql,(codigoinh,))
+                resultado = cur.fetchone()
+                if resultado is None:
+                    return False,"Herramienta no encontrada"
+                else:
+                    return True, resultado
+            except Error as e:
+                return False, str(e)
+            finally:
+                cur.close()
+                Conn.close()

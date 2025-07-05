@@ -22,6 +22,7 @@ class ValidarLogin:
                 return False, str(e)
             finally:#ejecuta si o si el cerrado del cursor para no dejarlo abierto
                 cur.close()
+                Conn.close()
     def validapswd(self, pswd, user):
         """Funcion para validar la contraseña"""
         db = Conexion()
@@ -44,6 +45,7 @@ class ValidarLogin:
                 return False, str(e)
             finally:#ejecuta si o si el cerrado del cursor para no dejarlo abierto
                 cur.close()
+                Conn.close()
     def obtenernombre(self,user):
         """Obtengo el nombre de el usuario de la base de datos para guardarlo en sesion"""
         db = Conexion()
@@ -61,3 +63,4 @@ class ValidarLogin:
                 return False, str(e)
             finally:#ejecuta si o si el cerrado del cursor para no dejarlo abierto
                 cur.close()
+                Conn.close()

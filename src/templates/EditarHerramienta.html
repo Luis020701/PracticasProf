@@ -75,6 +75,28 @@ Registro de Herramienta
         <form action="/EdiHerra" method="GET" class="bg-white p-4 shadow rounded">
                 <h4><span class="input-group-text">Ingresa el Código Interno para empezar a editar</span></h4>
                 <input type="text" placeholder="Codigo Interno" name="codigoinh" class="form-control" required>
+
+                <button type="submit" class="btn btn-primary w-100 d-flex align-items-center justify-content-center" id="cargarBtn">
+                <span id="btnText">Cargar Datos</span>
+                <div id="inlineSpinner" class="spinner-border text-light spinner-border-sm ms-2 d-none" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </button>
+            <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                const form = document.querySelector("form");
+                const spinner = document.getElementById("inlineSpinner");
+                const btn = document.getElementById("cargarBtn");
+                const btnText = document.getElementById("btnText");
+
+                form.addEventListener("submit", function () {
+                    spinner.classList.remove("d-none");
+                    btn.disabled = true;
+                    btnText.textContent = "Cargando...";
+                });
+            });
+            </script>
+
         </form>
 
         <form action="/EdiHerra" method="POST" class="bg-white p-4 shadow rounded">
@@ -82,45 +104,46 @@ Registro de Herramienta
             <div class="input-group mb-3">
         
                 <span class="input-group-text">Nombre</span>
-                <input type="text" placeholder="nombre herramienta" name="nombreh" class="form-control">
+                <input type="text" placeholder="nombre herramienta" name="nombreh" value="{{ datos['name'] }}" class="form-control">
                 <span class="input-group-text">Tipo</span>
-                <input type="text" placeholder="Tipo Herramienta" name="tipoh" class="form-control">
+                <input type="text" placeholder="Tipo Herramienta" name="tipoh" value="{{ datos['tool_type'] }}" class="form-control">
                 <span class="input-group-text">Marca</span>
-                <input type="text" placeholder="brand" name="brandh" class="form-control">
+                <input type="text" placeholder="brand" name="brandh" value="{{ datos['brand'] }}" class="form-control">
             </div>
 
             <label class="form-label">Seriales</label>
             <div class="input-group mb-3">
                 <span class="input-group-text">Modelo</span>
-                <input type="text" placeholder="Modelo" name="modeloh" class="form-control">
+                <input type="text" placeholder="Modelo" name="modeloh" value="{{ datos['model'] }}" class="form-control">
                 <span class="input-group-text">Número de serie</span>
-                <input type="text" placeholder="Numero de serie" name="serieh" class="form-control">
+                <input type="text" placeholder="Numero de serie" name="serieh" value="{{ datos['serial_number'] }}" class="form-control">
+                <input type="hidden" placeholder="Codigo Interno" name="codigoinh" value="{{ datos['internal_code'] }}" class="form-control" required>
             </div>
 
             <label class="form-label">Status</label>
             <div class="input-group mb-3">
                 <span class="input-group-text">Estatus</span>
                 <select name="statush" class="form-select">
-                    <option value="operativa">Operativa</option>
-                    <option value="en_reparacion">En Reparación</option>
-                    <option value="extraviada">Extraviada</option>
-                    <option value="obsoleta">Obsoleta</option>
+                    <option value="operativa" {% if datos['status'] == 'operativa' %}selected{%endif%}>Operativa</option>
+                    <option value="en_reparacion" {% if datos['status'] == 'en_reparacion' %}selected{%endif%}>En Reparación</option>
+                    <option value="extraviada" {% if datos['status'] == 'extraviada' %}selected{%endif%}>Extraviada</option>
+                    <option value="obsoleta" {%if datos['status'] == 'obsoleta' %}selected{%endif%}>Obsoleta</option>
                 </select>
             </div>
 
             <label class="form-label">Asignación</label>
             <div class="input-group mb-3">
                 <span class="input-group-text">Ubicación</span>
-                <input type="text" placeholder="Localidad" name="localidadh" class="form-control">
+                <input type="text" placeholder="Localidad" name="localidadh" value="{{ datos['location'] }}" class="form-control">
                 <span class="input-group-text">Responsable</span>
-                <input type="text" placeholder="Nombre" name="responsableh" class="form-control">
+                <input type="text" placeholder="Nombre" name="responsableh" value="{{ datos['responsible'] }}" class="form-control">
             </div>
 
             <div class="input-group mb-3">
                 <span class="input-group-text">$</span>
-                <input type="number" placeholder="Precio" name="precioh" class="form-control" min="0" step="0.01" >
+                <input type="number" placeholder="Precio" name="precioh" value="{{ datos['price'] }}" class="form-control" min="0" step="0.01" >
                 <span class="input-group-text">Observaciones</span>
-                <textarea class="form-control" name="observacionesh"></textarea>
+                <textarea class="form-control" name="observacionesh">{{ datos['observations'] }}</textarea>
             </div>
 
             <button type="submit" class="btn btn-primary w-100 d-flex align-items-center justify-content-center" id="EdiBtn">
