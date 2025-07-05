@@ -1,9 +1,9 @@
 """Esta clase servira para buscar las herramientas"""
-from datetime import datetime
 import dataclasses
 from DataBase.Conexion import Conexion , Error
 @dataclasses.dataclass
 class BuscarH:
+    """Clase para la busqueda de herramientas"""
     def Buscarhe(self, name, codigoh):
         db = Conexion()
         ok, Conn = db.conectar()
@@ -13,8 +13,8 @@ class BuscarH:
             sql="SELECT * FROM tools WHERE name LIKE %s or internal_code LIKE %s"
             cur = Conn.cursor(dictionary=True)
             try:
-                name = f"%{name}%"
-                codigoh= f"%{codigoh}%"
+                name = f"%{name}%"#añado comodines para poder hacer busquedas parciales que contengan el valor que estoy recibiendo
+                codigoh= f"%{codigoh}%"#añado comodines para poder hacer busquedas parciales
                 cur.execute(sql,(name, codigoh))
                 resultado=cur.fetchall()
                 return True, resultado
