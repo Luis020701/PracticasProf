@@ -5,12 +5,12 @@ import os
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(BASE_DIR)
 from Controlador.ValidarLogin import ValidarLogin
-from flask import Flask,render_template, request, redirect, url_for, session,flash
+from flask import Flask,render_template, request, redirect, url_for, session,flash, jsonify
 from flask_mysqldb import MySQL
 from Config import Config
 from decimal import Decimal, InvalidOperation
 from Controlador.AltaHerramientas import AltaHerramientas
-
+from Controlador.BuscarH import BuscarH
 Inv = Flask(__name__)
 db=MySQL(Inv)
 """La ruta me sirve para redireccionar a la ruta de login al ser la primera"""
@@ -157,6 +157,19 @@ def EdiHerra():
         else:
             flash('Herramienta Encontrada!','info')
             return render_template('EditarHerramienta.html', datos=valor)#Renderizo la pagina y envio los datos actuales
+@Inv.route('/Buscarh')
+def Buscarh():
+    return render_template('BuscadorHerramienta.html')
+@Inv.route('/api/Buscar')
+def api_Buscar():
+    termino = request.args.get('q','').strip()
+    bus=BuscarH()
+    ok,valor = bus.Buscarhe(termino,termino)
+    if not ok:
+        flash(valor,'danger')
+        return jsonify({'error': valor}), 500
+    else:
+        return jsonify(valor)
 @Inv.route('/logout')
 def logout():
     """Funcion para cerrar la sesion activa"""

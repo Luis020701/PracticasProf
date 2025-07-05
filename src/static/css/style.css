@@ -1,0 +1,14 @@
+#buscartable.table-striped > tbody > tr:nth-of-type(odd) {
+    background-color: #0f6cac !important;
+    color: white !important;
+}
+
+#buscartable.table-striped > tbody > tr:nth-of-type(even) {
+    background-color: #145aab !important;
+    color: white !important;
+}
+
+#buscartable.table-striped > tbody > tr:hover {
+    background-color: #084a8a !important;       
+    color: white !important;
+}

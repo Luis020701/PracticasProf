@@ -1,6 +1,6 @@
 {%extends './Base.html'%}
 {%block title%}
-Eliminar Herramienta
+🔎 Buscar Herramienta
 {%endblock%}
 {%block body%}
     <nav class="navbar navbar-light justify-content-between" style="background-color: #f2f2f2;">
@@ -34,7 +34,7 @@ Eliminar Herramienta
             <a class="nav-link" href="{{ url_for('regisherra') }}">Checar asignacion de herramienta</a>
             </li>
             <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('Buscar') }}">Buscador de herramienta</a>
+            <a class="nav-link" href="{{ url_for('Buscarh') }}">Buscador de herramienta</a>
             </li>
             <li class="nav-item">
             <a class="nav-link" href="{{ url_for('regisherra') }}">Reportes</a>
@@ -55,7 +55,6 @@ Eliminar Herramienta
         </div>
     </div>
 </nav>
-    
 
 <div class="container vh-100 d-flex justify-content-center align-items-center">
     <div class="w-100" style="max-width: 800px;">
@@ -72,54 +71,76 @@ Eliminar Herramienta
         {% endwith %}
 
         <!-- FORMULARIO -->
-        <form id="formEliminar" action="/EliHerra" method="POST" class="bg-white p-4 shadow rounded">
-           <h4><label class="form-label">Escribe el Código interno para Eliminar</label></h4>
-           <label class="form-label">Código Interno</label>
-            <div class="input-group mb-3">
-                <span class="input-group-text">Código Interno</span>
-                <input type="text" placeholder="Código Interno" name="codigoinh" id="codigoinh" class="form-control" required>
+         <div class="input-group mb-3 bg-white p-4 shadow rounded" id="buscardiv">
+           <h4><label class="form-label">Busca por nombre o codigo interno</label></h4>
+            <div class="input-group mb-3 bg-white p-4 shadow rounded">
+                <span class="input-group-text">🔎</span>
+                <input type="text" placeholder="Nombre o Codigo Interno" name="buscar" id="buscar" class="form-control" required>
             </div>
-            
-            <button type="button" class="btn btn-danger w-100 d-flex align-items-center justify-content-center" id="EliBtn">
-                <span id="btnText">Eliminar Herramienta</span>
-                <div id="inlineSpinner" class="spinner-border text-light spinner-border-sm ms-2 d-none" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-            </button>
-        </form>
+
+            <table class="table table-striped table-hover tabla_bus" id="buscartable">
+                <thead>
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Numero de serie</th>
+                        <th scope="col">Codigo Interno</th>
+                        <th scope="col">Tipo de Herramienta</th>
+                        <th scope="col">Estatus</th>
+                        <th scope="col">Responsable</th>
+                    </tr>
+                </thead>
+                <tbody id="Resultados">
+
+                </tbody>
+            </table>
+
+        </div>
     </div>
 </div>
-
-   
-
-<!-- SweetAlert y lógica de confirmación -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    const form = document.getElementById("formEliminar");
-    const btn = document.getElementById("EliBtn");
-    const spinner = document.getElementById("inlineSpinner");
-    const btnText = document.getElementById("btnText");
+document.getElementById('buscar').addEventListener('input', function () {
+    const query = this.value.trim();
 
-    btn.addEventListener("click", function () {
-        Swal.fire({
-            title: '¿Estás seguro?',
-            text: "Esta acción eliminará la herramienta del sistema.",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Sí, eliminar',
-            cancelButtonText: 'Cancelar'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                spinner.classList.remove("d-none");
-                btn.disabled = true;
-                btnText.textContent = "Cargando...";
-                form.submit();
+    if (query.length === 0) {
+        document.getElementById('Resultados').innerHTML = '';
+        return;
+    }
+
+    fetch(`/api/Buscar?q=${encodeURIComponent(query)}`)
+        .then(response => {
+            if (!response.ok) throw new Error("Error en respuesta del servidor");
+            return response.json();
+        })
+        .then(data => {
+            const tabla = document.getElementById('Resultados');
+            tabla.innerHTML = '';
+
+            if (data.length === 0) {
+                tabla.innerHTML = '<tr><td colspan="7">Sin resultados</td></tr>';
+                return;
             }
+
+            data.forEach(h => {
+                tabla.innerHTML += `
+                    <tr>
+                        <td>${h.id}</td>
+                        <td>${h.name}</td>
+                        <td>${h.serial_number}</td>
+                        <td>${h.internal_code}</td>
+                        <td>${h.tool_type}</td>
+                        <td>${h.status}</td>
+                        <td>${h.responsible}</td>
+                    </tr>
+                `;
+            });
+        })
+        .catch(error => {
+            console.error('Error en fetch:', error);
         });
-    });
 });
 </script>
+
+
+    
 {% endblock %}

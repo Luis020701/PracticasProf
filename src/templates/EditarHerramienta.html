@@ -1,10 +1,10 @@
 {%extends './Base.html'%}
 {%block title%}
-Registro de Herramienta
+Edición de Herramienta
 {%endblock%}
 {%block body%}
     <nav class="navbar navbar-light justify-content-between" style="background-color: #f2f2f2;">
-        <a class="navbar-brand">Hola, {{ session['nombre'] }}</a>
+        <a class="navbar-brand">Hola, 🙋🏻‍♂️{{ session['nombre'] }}</a>
 
             {%if session['rol'] == 1%}
                 <a class="navbar-brand">Rol: Administrador</a>
@@ -34,7 +34,7 @@ Registro de Herramienta
             <a class="nav-link" href="{{ url_for('regisherra') }}">Checar asignacion de herramienta</a>
             </li>
             <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('regisherra') }}">Buscador de herramienta</a>
+            <a class="nav-link" href="{{ url_for('Buscarh') }}">Buscador de herramienta</a>
             </li>
             <li class="nav-item">
             <a class="nav-link" href="{{ url_for('regisherra') }}">Reportes</a>
