@@ -11,6 +11,7 @@ from Config import Config
 from decimal import Decimal, InvalidOperation
 from Controlador.AltaHerramientas import AltaHerramientas
 from Controlador.BuscarH import BuscarH
+from Controlador.Movimientos import Movimientos
 Inv = Flask(__name__)
 db=MySQL(Inv)
 """La ruta me sirve para redireccionar a la ruta de login al ser la primera"""
@@ -170,6 +171,53 @@ def api_Buscar():
         return jsonify({'error': valor}), 500
     else:
         return jsonify(valor)
+@Inv.route('/entrasale', methods=['GET', 'POST'])
+def entrasale():
+    if request.method == 'POST':
+        nombrea = request.form.get('nombrea', '').strip()
+        nombrer = request.form.get('nombreR', '').strip()
+
+        localidades = request.form.getlist('locala[]')
+        herramientas = request.form.getlist('herra[]')
+        acciones = request.form.getlist('acciona[]')
+        observaciones = request.form.getlist('observacionesa[]')
+        """El bloque anterior me sirve para obtener las listas con getlist ya que permite obtener varias herramientas"""
+
+        mov = Movimientos()#creo mi variable para comunicarme con la funcion
+
+        for i in range(len(herramientas)):#recorremos las herramientas con un for ya que son listas y esto me permite realizar todas las inserciones
+            locala = localidades[i].strip()
+            Cherra = herramientas[i].strip()
+            acciona = acciones[i].strip()#limpiamos los campos para evitar espacios vacios
+            obsa = observaciones[i].strip()
+
+            if not Cherra:  # Evita procesar herramientas vacías, cada iteracion del for me permite obtener la herramienta depende la vuelta i
+                continue
+
+            ok, estado_actual = mov.estatusMov(Cherra)#esta funcion verifica en que estado se encuentra(entrada o salida)
+
+            if not ok:#si no tiene estado
+                ok, mensaje = mov.mov(nombrea, nombrer, locala, acciona, obsa, Cherra)#realiza el cambio de estado
+                if not ok:#muestra en mensaje con flash segun sea el caso
+                    flash(f"{Cherra}: {mensaje}", 'danger')
+                else:
+                    flash(f"{Cherra}: {mensaje}", 'success')
+            else:
+                if estado_actual == acciona:#esta parte del codigo meramente personaliza el msj que mostrara depende la accion que tiene
+                    if estado_actual == "entrada":
+                        flash(f"{Cherra}: Esta herramienta ya está en almacén", 'info')
+                    elif estado_actual == "salida":
+                        flash(f"{Cherra}: Esta herramienta ya está en préstamo", 'info')
+                else:
+                    ok, mensaje = mov.mov(nombrea, nombrer, locala, acciona, obsa, Cherra)#en caso de que no sea identica la accion
+                    if not ok:#hace el cambio de accion y segun sea el caso muestra error o exito
+                        flash(f"{Cherra}: {mensaje}", 'danger')
+                    else:
+                        flash(f"{Cherra}: {mensaje}", 'success')
+
+        return render_template('EntradaSalida.html')
+
+    return render_template('EntradaSalida.html')
 @Inv.route('/logout')
 def logout():
     """Funcion para cerrar la sesion activa"""

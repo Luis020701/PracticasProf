@@ -1,6 +1,6 @@
 {%extends './Base.html'%}
 {%block title%}
-🔎 Buscar Herramienta
+Entrada y Salida
 {%endblock%}
 {%block body%}
     <nav class="navbar navbar-light justify-content-between" style="background-color: #f2f2f2;">
@@ -54,9 +54,10 @@
         </div>
     </div>
 </nav>
+    
 
 <div class="container vh-100 d-flex justify-content-center align-items-center">
-    <div class="w-100" style="max-width: 800px;">
+    <div class="w-100" style="max-width: 1200px;">
         <!-- ALERTAS -->
         {% with mensajes = get_flashed_messages(with_categories=true) %}
             {% if mensajes %}
@@ -70,76 +71,69 @@
         {% endwith %}
 
         <!-- FORMULARIO -->
-         <div class="input-group mb-3 bg-white p-4 shadow rounded" id="buscardiv">
-           <h4><label class="form-label">Busca por nombre o codigo interno</label></h4>
-            <div class="input-group mb-3 bg-white p-4 shadow rounded">
-                <span class="input-group-text">🔎</span>
-                <input type="text" placeholder="Nombre o Codigo Interno" name="buscar" id="buscar" class="form-control" required>
-            </div>
+        <form action="/entrasale" method="POST" class="bg-white p-4 shadow rounded">
+    <h4><label class="form-label">Entrada y Salida</label></h4>
 
-            <table class="table table-striped table-hover tabla_bus" id="buscartable">
-                <thead>
-                    <tr>
-                        <th scope="col">ID</th>
-                        <th scope="col">Nombre</th>
-                        <th scope="col">Numero de serie</th>
-                        <th scope="col">Codigo Interno</th>
-                        <th scope="col">Tipo de Herramienta</th>
-                        <th scope="col">Estatus</th>
-                        <th scope="col">Responsable</th>
-                    </tr>
-                </thead>
-                <tbody id="Resultados">
+    <div class="input-group mb-3">
+        <span class="input-group-text">Quien Registra la acción:</span>
+        <input type="text" name="nombrea" class="form-control" value="{{ session['nombre'] }}" readonly class="form-control bg-light">
+        <span class="input-group-text">Quien recibe o entrega:</span>
+        <input type="text" name="nombreR" class="form-control">
+    </div>
 
-                </tbody>
-            </table>
-
+    <div id="accionesContainer">
+        <!-- Primer bloque -->
+        <div class="accion-block input-group mb-3">
+            <span class="input-group-text">Localidad:</span>
+            <input type="text" name="locala[]" class="form-control" required>
+            <span class="input-group-text">Código Herramienta:</span>
+            <input type="text" name="herra[]" class="form-control">
+            <span class="input-group-text">Acción:</span>
+            <select name="acciona[]" class="form-select">
+                <option value="entrada">Entrada</option>
+                <option value="salida">Salida</option>
+            </select>
+            <span class="input-group-text">Observaciones:</span>
+            <input type="text" name="observacionesa[]" class="form-control">
         </div>
     </div>
-</div>
+
+    <button type="button" class="btn btn-secondary mb-3" onclick="agregarAccion()">+ Añadir otra herramienta</button>
+
+    <button type="submit" class="btn btn-primary w-100">
+        Registrar Acciones
+    </button>
+</form>
+
 <script>
-document.getElementById('buscar').addEventListener('input', function () {
-    const query = this.value.trim();
+function agregarAccion() {
+    const container = document.getElementById("accionesContainer");
+    const nuevo = container.firstElementChild.cloneNode(true);
 
-    if (query.length === 0) {
-        document.getElementById('Resultados').innerHTML = '';
-        return;
-    }
+    // Limpiar valores
+    nuevo.querySelectorAll("input, select").forEach(el => el.value = "");
 
-    fetch(`/api/Buscar?q=${encodeURIComponent(query)}`)
-        .then(response => {
-            if (!response.ok) throw new Error("Error en respuesta del servidor");
-            return response.json();
-        })
-        .then(data => {
-            const tabla = document.getElementById('Resultados');
-            tabla.innerHTML = '';
-
-            if (data.length === 0) {
-                tabla.innerHTML = '<tr><td colspan="7">Sin resultados</td></tr>';
-                return;
-            }
-
-            data.forEach(h => {
-                tabla.innerHTML += `
-                    <tr>
-                        <td>${h.id}</td>
-                        <td>${h.name}</td>
-                        <td>${h.serial_number}</td>
-                        <td>${h.internal_code}</td>
-                        <td>${h.tool_type}</td>
-                        <td>${h.status}</td>
-                        <td>${h.responsible}</td>
-                    </tr>
-                `;
-            });
-        })
-        .catch(error => {
-            console.error('Error en fetch:', error);
-        });
-});
+    container.appendChild(nuevo);
+}
 </script>
+            <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                const form = document.querySelector("form");
+                const spinner = document.getElementById("inlineSpinner");
+                const btn = document.getElementById("regisBtn");
+                const btnText = document.getElementById("accionBtn");
 
+                form.addEventListener("submit", function () {
+                    spinner.classList.remove("d-none");
+                    btn.disabled = true;
+                    btnText.textContent = "Cargando...";
+                });
+            });
+            </script>
+        </form>
+    </div>
+        </form>
+    </div>
+</div>
 
-    
-{% endblock %}
+{%endblock%}
