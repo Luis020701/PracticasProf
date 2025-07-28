@@ -197,11 +197,15 @@ def entrasale():
             ok, estado_actual = mov.estatusMov(Cherra)#esta funcion verifica en que estado se encuentra(entrada o salida)
 
             if not ok:#si no tiene estado
-                ok, mensaje = mov.mov(nombrea, nombrer, locala, acciona, obsa, Cherra)#realiza el cambio de estado
-                if not ok:#muestra en mensaje con flash segun sea el caso
-                    flash(f"{Cherra}: {mensaje}", 'danger')
+                estatus_invalidos = ['en_reparacion', 'extraviada', 'obsoleta']
+                if estado_actual in estatus_invalidos:
+                    flash(f"El estatus es:{estado_actual}",'danger')
                 else:
-                    flash(f"{Cherra}: {mensaje}", 'success')
+                    ok, mensaje = mov.mov(nombrea, nombrer, locala, acciona, obsa, Cherra)#realiza el cambio de estado
+                    if not ok:#muestra en mensaje con flash segun sea el caso
+                        flash(f"{Cherra}: {mensaje}", 'danger')
+                    else:
+                        flash(f"{Cherra}: {mensaje}", 'success')
             else:
                 if estado_actual == acciona:#esta parte del codigo meramente personaliza el msj que mostrara depende la accion que tiene
                     if estado_actual == "entrada":

@@ -65,12 +65,15 @@ class Movimientos:
             try:
                 cur=Conn.cursor()
                 cur1=Conn.cursor()
-                sql="SELECT id FROM tools WHERE internal_code = %s"#obtengo el id de la herramienta para poder filtrar los movimientos
+                sql="SELECT id, status FROM tools WHERE internal_code = %s"#obtengo el id de la herramienta para poder filtrar los  al igual que su status para evaluarlo
                 cur.execute(sql,(herra,))
                 res=cur.fetchone()
                 if res is  None:
                     return False, 'No se encontro el id de la herramienta'
-                idh=res[0]
+                idh, sts= res
+                estatus_invalidos = ['en_reparacion', 'extraviada', 'obsoleta']
+                if sts in estatus_invalidos:#valido que estatus tiene
+                    return False, sts#si tiene alguno de estos 3 manda error
                 sql1="SELECT action FROM movements WHERE tool_id = %s ORDER BY timestamp DESC LIMIT 1"#consulto la accion para poder evitar problemas de insercion
                 cur1.execute(sql1,(idh,))
                 res1=cur1.fetchone()
