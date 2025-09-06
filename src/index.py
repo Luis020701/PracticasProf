@@ -6,14 +6,13 @@ BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(BASE_DIR)
 from Controlador.ValidarLogin import ValidarLogin
 from flask import Flask,render_template, request, redirect, url_for, session,flash, jsonify
-from flask_mysqldb import MySQL
 from Config import Config
 from decimal import Decimal, InvalidOperation
 from Controlador.AltaHerramientas import AltaHerramientas
 from Controlador.BuscarH import BuscarH
 from Controlador.Movimientos import Movimientos
+from Controlador.Historial import Historial
 Inv = Flask(__name__)
-db=MySQL(Inv)
 """La ruta me sirve para redireccionar a la ruta de login al ser la primera"""
 @Inv.route('/')
 def index():
@@ -222,6 +221,49 @@ def entrasale():
         return render_template('EntradaSalida.html')
 
     return render_template('EntradaSalida.html')
+
+@Inv.route('/historial', methods=['GET','POST'])
+def historial():
+    """este metodo me permite obtener el historial y compartirlo a la vista html"""
+    if request.method=='POST':
+        nombreR = request.form.get('nombreR','').strip()
+        herra = request.form.get('herra','').strip()
+        accion = request.form.get('accion','').strip()
+        fechaini = request.form.get('fechaini','').strip()
+        fechafin = request.form.get('fechafin','').strip()
+        fechaini = request.form.get('fechaini','').strip()
+        if not (nombreR or herra or accion or fechaini or fechafin):
+            flash("Debes ingresar al menos un parametro", 'warning')
+            return render_template('Historial.html')
+        """Creo un arreglo para poder ir añadiendo las condiciones y los valores segun sea el caso"""
+        valor = []
+        condicion= [] 
+        """En cada caso valido si el usuario introdujo algun valor, en caso de que no, no inserto nada al arreglo """
+        if nombreR:
+            condicion.append("person = %s")
+            valor.append(nombreR)
+        if accion:
+            condicion.append("action = %s")
+            valor.append(accion)
+        if fechaini:
+            condicion.append("timestamp >= %s")
+            valor.append(fechaini)
+        if fechafin:
+            condicion.append("timestamp <= %s")
+            valor.append(fechafin)
+        histo = Historial()
+        ok,valores= histo.histo(herra,condicion,valor)
+        codigos=[]
+        for cod in valores:
+            codigos.append(cod[1])
+        if not ok:
+            flash(valores,'danger')#enviamos el error que nos regrese
+            return render_template('Historial.html')
+        else:
+            return render_template('Historial.html', datos=valores)
+    else:
+        return render_template('Historial.html')
+
 @Inv.route('/logout')
 def logout():
     """Funcion para cerrar la sesion activa"""

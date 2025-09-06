@@ -1,10 +1,10 @@
 """Importo la Clase Conexion para poder trabajar con la Base de datos"""
 from datetime import datetime
 import dataclasses
-from werkzeug.security import generate_password_hash,check_password_hash
 from DataBase.Conexion import Conexion, Error
 @dataclasses.dataclass
 class Movimientos:
+    """la clase movientos me permite implementar funciones para realizar los moviemientos deseados"""
     def mov(self,nombre,nombrer,local,accion,obs,herra):
         """Esta funcion me sirve para dar entrada o salida a la herramienta"""
         db = Conexion()

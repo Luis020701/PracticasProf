@@ -1,0 +1,138 @@
+{% extends './Base.html' %}
+{% block title %}Historial{% endblock %}
+{% block body %}
+
+<!-- NAVBAR PRINCIPAL -->
+<nav class="navbar navbar-light justify-content-between" style="background-color: #f2f2f2;">
+    <a class="navbar-brand">Hola, 🙋🏻‍♂️{{ session['nombre'] }}</a>
+
+    {% if session['rol'] == 1 %}
+        <a class="navbar-brand">Rol: Administrador</a>
+    {% elif session['rol'] == 2 %}
+        <a class="navbar-brand">Rol: Almacenista</a>
+    {% else %}
+        <a class="navbar-brand">Rol: Técnico</a>
+    {% endif %}
+
+    <form action="{{ url_for('logout') }}" method="get" class="form-inline">
+        <button type="submit" class="btn btn-outline-danger">Salir</button>
+    </form>
+</nav>
+
+<!-- NAVBAR SECUNDARIO -->
+<nav class="navbar navbar-light" style="background-color: #0f6cac;">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{{ url_for('index') }}">ENERGY SITE, S.A. DE C.V.</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown"
+            aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavDropdown">
+            <ul class="navbar-nav">
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('historial') }}">Historial de movimientos</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('regisherra') }}">Checar asignación de herramienta</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('Buscarh') }}">Buscador de herramienta</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('regisherra') }}">Reportes</a></li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Herramienta</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{{ url_for('entrasale') }}">Entrada y Salida</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('regisherra') }}">Registrar</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('EdiHerra') }}">Editar</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('EliHerra') }}">Eliminar</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- CONTENEDOR PRINCIPAL -->
+<div class="container mt-3">
+
+    <!-- ALERTAS (solo un bloque) -->
+    {% with mensajes = get_flashed_messages(with_categories=true) %}
+        {% if mensajes %}
+            {% for categoria, mensaje in mensajes %}
+                <div class="alert alert-{{ categoria }} alert-dismissible fade show" role="alert" style="margin-top:10px;">
+                    {{ mensaje }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- FORMULARIO DE BUSQUEDA -->
+    <form action="/historial" method="POST" class="bg-white p-4 shadow rounded mb-4">
+        <h4 class="mb-3">Historial de movimientos</h4>
+        <div class="alert alert-info" role="alert">
+            <strong>Recordatorio:</strong> Puedes buscar por fecha, movimiento, persona o herramienta
+        </div>
+
+        <div class="input-group mb-3">
+            <span class="input-group-text">Persona Responsable:</span>
+            <input type="text" name="nombreR" class="form-control">
+        </div>
+
+        <div class="input-group mb-3">
+            <span class="input-group-text">Código Interno Herramienta:</span>
+            <input type="text" name="herra" class="form-control">
+            <span class="input-group-text">Acción:</span>
+            <select name="accion" class="form-select">
+                <option value="" disabled selected>-- Selecciona una opción --</option>
+                <option value="entrada">Entrada</option>
+                <option value="salida">Salida</option>
+            </select>
+        </div>
+
+        <div class="input-group mb-3">
+            <span class="input-group-text">Fecha inicio:</span>
+            <input type="date" name="fechaini" class="form-control">
+            <span class="input-group-text">Fecha fin:</span>
+            <input type="date" name="fechafin" class="form-control">
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100">Buscar Registros</button>
+    </form>
+
+    <!-- TABLA CON SCROLL -->
+    <div class="table-container mb-4" style="max-height: 400px; overflow-y: auto;">
+        {%if datos%}
+        <table class="table table-striped table-hover tabla_bus" id="buscartable">
+            <thead>
+                <tr>
+                    <th>Persona Responsable</th>
+                    <th>Código Herramienta</th>
+                    <th>Tipo de movimiento</th>
+                    <th>Fecha</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for fila in datos %}
+                <tr>
+                    <td>{{ fila[4] }}</td>
+                    <td>{{ fila[1] }}</td>
+                    <td>{{ fila[3] }}</td>
+                    <td>{{ fila[7] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="alert alert-info">No se encontraron registros.</div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ESTILOS ADICIONALES -->
+<style>
+.table-container {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+.tabla_bus td {
+    word-wrap: break-word;
+}
+</style>
+
+{% endblock %}
