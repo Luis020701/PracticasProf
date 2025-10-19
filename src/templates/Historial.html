@@ -20,26 +20,24 @@
 </nav>
 
 <!-- NAVBAR SECUNDARIO -->
-<nav class="navbar navbar-light" style="background-color: #0f6cac;">
+    <nav  class="navbar navbar-light" style="background-color: #0f6cac;">
     <div class="container-fluid">
-        <a class="navbar-brand" href="{{ url_for('index') }}">ENERGY SITE, S.A. DE C.V.</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown"
-            aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
+        <a class="navbar-brand" href="{{ url_for('index') }}">ENERGY SITE, S.A. DE C.V.</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNavDropdown">
             <ul class="navbar-nav">
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('historial') }}">Historial de movimientos</a></li>
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('regisherra') }}">Checar asignación de herramienta</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('Buscarh') }}">Buscador de herramienta</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('regisherra') }}">Reportes</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('buscar_herramienta') }}">Buscador de herramienta</a></li>
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Herramienta</a>
                     <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="{{ url_for('entrasale') }}">Entrada y Salida</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('entra_sale') }}">Entrada y Salida</a></li>
                         <li><a class="dropdown-item" href="{{ url_for('regisherra') }}">Registrar</a></li>
-                        <li><a class="dropdown-item" href="{{ url_for('EdiHerra') }}">Editar</a></li>
-                        <li><a class="dropdown-item" href="{{ url_for('EliHerra') }}">Eliminar</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('editar_herramienta') }}">Editar</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('eliminar_herramienta') }}">Eliminar</a></li>
                     </ul>
                 </li>
             </ul>
@@ -92,7 +90,15 @@
             <input type="date" name="fechafin" class="form-control">
         </div>
 
-        <button type="submit" class="btn btn-primary w-100">Buscar Registros</button>
+        <button type="submit" name="action" value="Buscar" class="btn btn-primary w-100">Buscar Registros</button>
+    </form>
+    <form id="form-reporte" action="/reporte" method="POST" class="bg-white p-4 shadow rounded mb-4" target="_blank">
+        <input type="hidden" name="nombreR" value="{{ filtros.nombrer }}">
+        <input type="hidden" name="herra" value="{{ filtros.herra }}">
+        <input type="hidden" name="accion" value="{{ filtros.accion }}">
+        <input type="hidden" name="fechaini" value="{{ filtros.fechaini }}">
+        <input type="hidden" name="fechafin" value="{{ filtros.fechafin }}">
+        <button type="submit" name="action" value="Reporte" class="btn btn-primary w-100">Descargar Reporte</button>
     </form>
 
     <!-- TABLA CON SCROLL -->
@@ -102,18 +108,22 @@
             <thead>
                 <tr>
                     <th>Persona Responsable</th>
-                    <th>Código Herramienta</th>
+                    <th>Nombre de herramienta</th>
+                    <th>Código Interno de Herramienta</th>
                     <th>Tipo de movimiento</th>
                     <th>Fecha</th>
+                    <th>Estatus</th>
                 </tr>
             </thead>
             <tbody>
                 {% for fila in datos %}
                 <tr>
-                    <td>{{ fila[4] }}</td>
-                    <td>{{ fila[1] }}</td>
-                    <td>{{ fila[3] }}</td>
-                    <td>{{ fila[7] }}</td>
+                    <td>{{ fila.person }}</td>
+                    <td>{{ fila.name }}</td>
+                    <td>{{ fila.internal_code }}</td>
+                    <td>{{ fila.action }}</td>
+                    <td>{{ fila.timestamp }}</td>
+                    <td>{{ fila.status }}</td>
                 </tr>
                 {% endfor %}
             </tbody>

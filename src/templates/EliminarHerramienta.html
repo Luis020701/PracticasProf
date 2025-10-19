@@ -26,31 +26,20 @@ Eliminar Herramienta
         <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNavDropdown">
-        <ul class="navbar-nav">
-            <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('historial') }}">Historial de movimientos</a>
-            </li>
-            <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('regisherra') }}">Checar asignacion de herramienta</a>
-            </li>
-            <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('Buscar') }}">Buscador de herramienta</a>
-            </li>
-            <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('regisherra') }}">Reportes</a>
-            </li>
-            <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                Herramienta
-            </a>
-            <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="{{ url_for('entrasale') }}">Entrada y Salida</a></li>
-                <li><a class="dropdown-item" href="{{ url_for('regisherra') }}">Registrar</a></li>
-                <li><a class="dropdown-item" href="{{ url_for('EdiHerra') }}">Editar</a></li>
-                <li><a class="dropdown-item" href="{{ url_for('EliHerra') }}">Eliminar</a></li>
+            <ul class="navbar-nav">
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('historial') }}">Historial de movimientos</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('regisherra') }}">Checar asignación de herramienta</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('buscar_herramienta') }}">Buscador de herramienta</a></li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Herramienta</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{{ url_for('entra_sale') }}">Entrada y Salida</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('regisherra') }}">Registrar</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('editar_herramienta') }}">Editar</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('eliminar_herramienta') }}">Eliminar</a></li>
+                    </ul>
+                </li>
             </ul>
-            </li>
-        </ul>
         </div>
     </div>
 </nav>

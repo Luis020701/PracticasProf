@@ -1,0 +1,54 @@
+{% extends './Base.html' %}
+{% block title %}Historial{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/styleTemplate.css', _external=True) }}">
+{%endblock%}
+{% block body %}
+
+<!-- NAVBAR PRINCIPAL -->
+<nav class="navbar navbar-light">
+    <div class="container-fluid d-flex align-items-center">
+        <img src="{{ url_for('static', filename='img/LogoTITEmpresarial.png',_external=True) }}" class="logo d-inline-block align-text-top" alt="Logo">
+        <a class="titulo navbar-brand position-absolute top-50 start-50 translate-middle text-white fw-bold">ENERGY SITE, S.A. DE C.V.</a>
+    </div>
+</nav>
+
+<nav class="navbar navbar-light mx-auto navbar-historial">
+    <div class="container-fluid d-flex align-items-center">
+        <a class="titulo navbar-brand position-absolute top-50 start-50 translate-middle text-white fw-bold">HISTORIAL DE HERRAMIENTAS</a>
+    </div>
+</nav>
+
+<!-- Tabla -->
+<div class="table-container mb-4">
+    {% if datos %}
+    <table class="table table-striped table-hover tabla_bus" id="buscartable">
+        <thead>
+            <tr>
+                <th>Persona Responsable</th>
+                <th>Nombre de herramienta</th>
+                <th>Código Interno de Herramienta</th>
+                <th>Tipo de movimiento</th>
+                <th>Fecha</th>
+                <th>Estatus</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for fila in datos %}
+            <tr>
+                <td>{{ fila.person }}</td>
+                <td>{{ fila.name }}</td>
+                <td>{{ fila.internal_code }}</td>
+                <td>{{ fila.action }}</td>
+                <td>{{ fila.timestamp }}</td>
+                <td>{{ fila.status }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="alert alert-info">No se encontraron registros.</div>
+    {% endif %}
+</div>
+
+{% endblock %}
