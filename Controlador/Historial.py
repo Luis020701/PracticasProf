@@ -5,7 +5,7 @@ from DataBase.Conexion import Conexion, Error
 class Historial:
     """la clase historial la uso para implementar las funciones 
     requeridas ppara las busqueda de estos datos"""
-    def histo(self, herra, condi, valor):
+    def histo(self, herra, condi, valor) -> tuple[bool, list]:
         """Consulta la tabla de movimientos y devuelve resultados con joins a tools"""
         db = Conexion()
         ok, con = db.conectar()
@@ -28,7 +28,7 @@ class Historial:
 
             if herra:
                 # Buscar ID de la herramienta a partir del internal_code
-                sql = "SELECT id FROM tools WHERE internal_code = %s"
+                sql = "SELECT id FROM tools WHERE internal_code = %s AND status <> 'eliminada'"
                 cur.execute(sql, (herra,))
                 res = cur.fetchone()
                 if not res:

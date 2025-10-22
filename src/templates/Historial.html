@@ -1,148 +1,139 @@
 {% extends './Base.html' %}
 {% block title %}Historial{% endblock %}
+
 {% block body %}
-
-<!-- NAVBAR PRINCIPAL -->
-<nav class="navbar navbar-light justify-content-between" style="background-color: #f2f2f2;">
-    <a class="navbar-brand">Hola, 🙋🏻‍♂️{{ session['nombre'] }}</a>
-
+<!-- NAV SUPERIOR -->
+<nav class="navbar navbar-light bg-light flex-wrap justify-content-between px-3">
+  <div>
+    <span class="navbar-brand mb-0 h6">Hola, 🙋🏻‍♂️ {{ session['nombre'] }}</span>
+  </div>
+  <div>
     {% if session['rol'] == 1 %}
-        <a class="navbar-brand">Rol: Administrador</a>
+      <span class="navbar-text me-3 text-secondary">Rol: Administrador</span>
     {% elif session['rol'] == 2 %}
-        <a class="navbar-brand">Rol: Almacenista</a>
+      <span class="navbar-text me-3 text-secondary">Rol: Almacenista</span>
     {% else %}
-        <a class="navbar-brand">Rol: Técnico</a>
+      <span class="navbar-text me-3 text-secondary">Rol: Técnico</span>
     {% endif %}
-
-    <form action="{{ url_for('logout') }}" method="get" class="form-inline">
-        <button type="submit" class="btn btn-outline-danger">Salir</button>
-    </form>
+  </div>
+  <form action="{{ url_for('logout') }}" method="get">
+    <button type="submit" class="btn btn-outline-danger btn-sm">Salir</button>
+  </form>
 </nav>
 
-<!-- NAVBAR SECUNDARIO -->
-    <nav  class="navbar navbar-light" style="background-color: #0f6cac;">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="{{ url_for('index') }}">ENERGY SITE, S.A. DE C.V.</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNavDropdown">
-            <ul class="navbar-nav">
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('historial') }}">Historial de movimientos</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('regisherra') }}">Checar asignación de herramienta</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('buscar_herramienta') }}">Buscador de herramienta</a></li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Herramienta</a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="{{ url_for('entra_sale') }}">Entrada y Salida</a></li>
-                        <li><a class="dropdown-item" href="{{ url_for('regisherra') }}">Registrar</a></li>
-                        <li><a class="dropdown-item" href="{{ url_for('editar_herramienta') }}">Editar</a></li>
-                        <li><a class="dropdown-item" href="{{ url_for('eliminar_herramienta') }}">Eliminar</a></li>
-                    </ul>
-                </li>
-            </ul>
-        </div>
+<!-- NAV PRINCIPAL -->
+<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #0f6cac;">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="{{ url_for('index') }}">ENERGY SITE, S.A. DE C.V.</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNavDropdown">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('historial') }}">Historial</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('buscar_herramienta') }}">Buscador</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('inventario') }}">Inventario</a></li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Herramienta</a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="{{ url_for('entra_sale') }}">Entrada/Salida</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('regisherra') }}">Registrar</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('editar_herramienta') }}">Editar</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('eliminar_herramienta') }}">Eliminar</a></li>
+          </ul>
+        </li>
+      </ul>
     </div>
+  </div>
 </nav>
 
 <!-- CONTENEDOR PRINCIPAL -->
-<div class="container mt-3">
-
-    <!-- ALERTAS (solo un bloque) -->
-    {% with mensajes = get_flashed_messages(with_categories=true) %}
-        {% if mensajes %}
-            {% for categoria, mensaje in mensajes %}
-                <div class="alert alert-{{ categoria }} alert-dismissible fade show" role="alert" style="margin-top:10px;">
-                    {{ mensaje }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
-
-    <!-- FORMULARIO DE BUSQUEDA -->
-    <form action="/historial" method="POST" class="bg-white p-4 shadow rounded mb-4">
-        <h4 class="mb-3">Historial de movimientos</h4>
-        <div class="alert alert-info" role="alert">
-            <strong>Recordatorio:</strong> Puedes buscar por fecha, movimiento, persona o herramienta
+<div class="container my-4">
+  <!-- ALERTAS -->
+  {% with mensajes = get_flashed_messages(with_categories=true) %}
+    {% if mensajes %}
+      {% for categoria, mensaje in mensajes %}
+        <div class="alert alert-{{ categoria }} alert-dismissible fade show" role="alert">
+          {{ mensaje }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
 
-        <div class="input-group mb-3">
-            <span class="input-group-text">Persona Responsable:</span>
-            <input type="text" name="nombreR" class="form-control">
-        </div>
-
-        <div class="input-group mb-3">
-            <span class="input-group-text">Código Interno Herramienta:</span>
-            <input type="text" name="herra" class="form-control">
-            <span class="input-group-text">Acción:</span>
-            <select name="accion" class="form-select">
-                <option value="" disabled selected>-- Selecciona una opción --</option>
-                <option value="entrada">Entrada</option>
-                <option value="salida">Salida</option>
-            </select>
-        </div>
-
-        <div class="input-group mb-3">
-            <span class="input-group-text">Fecha inicio:</span>
-            <input type="date" name="fechaini" class="form-control">
-            <span class="input-group-text">Fecha fin:</span>
-            <input type="date" name="fechafin" class="form-control">
-        </div>
-
-        <button type="submit" name="action" value="Buscar" class="btn btn-primary w-100">Buscar Registros</button>
-    </form>
-    <form id="form-reporte" action="/reporte" method="POST" class="bg-white p-4 shadow rounded mb-4" target="_blank">
-        <input type="hidden" name="nombreR" value="{{ filtros.nombrer }}">
-        <input type="hidden" name="herra" value="{{ filtros.herra }}">
-        <input type="hidden" name="accion" value="{{ filtros.accion }}">
-        <input type="hidden" name="fechaini" value="{{ filtros.fechaini }}">
-        <input type="hidden" name="fechafin" value="{{ filtros.fechafin }}">
-        <button type="submit" name="action" value="Reporte" class="btn btn-primary w-100">Descargar Reporte</button>
-    </form>
-
-    <!-- TABLA CON SCROLL -->
-    <div class="table-container mb-4" style="max-height: 400px; overflow-y: auto;">
-        {%if datos%}
-        <table class="table table-striped table-hover tabla_bus" id="buscartable">
-            <thead>
-                <tr>
-                    <th>Persona Responsable</th>
-                    <th>Nombre de herramienta</th>
-                    <th>Código Interno de Herramienta</th>
-                    <th>Tipo de movimiento</th>
-                    <th>Fecha</th>
-                    <th>Estatus</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for fila in datos %}
-                <tr>
-                    <td>{{ fila.person }}</td>
-                    <td>{{ fila.name }}</td>
-                    <td>{{ fila.internal_code }}</td>
-                    <td>{{ fila.action }}</td>
-                    <td>{{ fila.timestamp }}</td>
-                    <td>{{ fila.status }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% else %}
-        <div class="alert alert-info">No se encontraron registros.</div>
-        {% endif %}
+  <!-- FORMULARIO DE BUSQUEDA -->
+  <form action="/historial" method="POST" class="bg-white p-4 shadow-sm rounded mb-4">
+    <h4 class="mb-3 text-center">Historial de movimientos</h4>
+    <div class="alert alert-info" role="alert">
+      <strong>Recordatorio:</strong> Puedes buscar por fecha, movimiento, persona o herramienta
     </div>
+
+    <div class="row g-3">
+      <div class="col-md-4">
+        <input type="text" name="nombreR" class="form-control" placeholder="Persona Responsable">
+      </div>
+      <div class="col-md-4">
+        <input type="text" name="herra" class="form-control" placeholder="Código Interno">
+      </div>
+      <div class="col-md-4">
+        <select name="accion" class="form-select">
+          <option value="" disabled selected>-- Acción --</option>
+          <option value="entrada">Entrada</option>
+          <option value="salida">Salida</option>
+        </select>
+      </div>
+      <div class="col-md-6">
+        <input type="date" name="fechaini" class="form-control">
+      </div>
+      <div class="col-md-6">
+        <input type="date" name="fechafin" class="form-control">
+      </div>
+      <div class="col-12">
+        <button type="submit" class="btn btn-primary w-100">Buscar Registros</button>
+      </div>
+    </div>
+  </form>
+
+  <!-- FORMULARIO REPORTE -->
+  <form id="form-reporte" action="/reporte" method="POST" class="bg-white p-4 shadow-sm rounded mb-4" target="_blank">
+    <input type="hidden" name="nombreR" value="{{ filtros.nombrer }}">
+    <input type="hidden" name="herra" value="{{ filtros.herra }}">
+    <input type="hidden" name="accion" value="{{ filtros.accion }}">
+    <input type="hidden" name="fechaini" value="{{ filtros.fechaini }}">
+    <input type="hidden" name="fechafin" value="{{ filtros.fechafin }}">
+    <button type="submit" class="btn btn-primary w-100">Descargar Reporte</button>
+  </form>
+
+  <!-- TABLA RESPONSIVE -->
+  <div class="table-responsive">
+    {% if datos %}
+      <table class="table table-striped table-hover tabla_bus">
+        <thead>
+          <tr>
+            <th>Persona Responsable</th>
+            <th>Nombre de herramienta</th>
+            <th>Código Interno</th>
+            <th>Tipo de movimiento</th>
+            <th>Fecha</th>
+            <th>Estatus</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for fila in datos %}
+            <tr>
+              <td>{{ fila.person }}</td>
+              <td>{{ fila.name }}</td>
+              <td>{{ fila.internal_code }}</td>
+              <td>{{ fila.action }}</td>
+              <td>{{ fila.timestamp }}</td>
+              <td>{{ fila.status }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="alert alert-info">No se encontraron registros.</div>
+    {% endif %}
+  </div>
 </div>
-
-<!-- ESTILOS ADICIONALES -->
-<style>
-.table-container {
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
-.tabla_bus td {
-    word-wrap: break-word;
-}
-</style>
-
 {% endblock %}

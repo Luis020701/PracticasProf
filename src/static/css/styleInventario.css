@@ -1,0 +1,159 @@
+/* --------------------------
+   Reset y tipografía básica
+--------------------------- */
+body {
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    margin: 0;
+    padding: 0;
+    color: #000;
+}
+
+/* --------------------------
+   Navbar
+--------------------------- */
+.navbar-light {
+    background-color: #0f6cac !important;
+}
+.titulo{
+    font-weight: 900;         /* Negrita extra */
+    font-size: 24px;          /* Tamaño de fuente */
+    font-family: 'Arial', sans-serif; /* Fuente personalizada */
+    text-transform: uppercase; /* Mayúsculas */
+    letter-spacing: 1px;
+}
+
+.navbar .navbar-brand {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #fff !important;
+    font-weight: 700;
+}
+
+/* --------------------------
+   Logo
+--------------------------- */
+.logo {
+    width: 100px;
+    height: auto;
+    display: inline-block;
+}
+
+/* --------------------------
+   Tabla
+--------------------------- */
+.table {
+    width: 100%;
+    margin-bottom: 1rem;
+    color: #0f6cac;
+    border-collapse: collapse;
+}
+
+.table th,
+.table td {
+    font-family: Arial, sans-serif;
+    padding: 0.5rem;
+    border: 1px solid #dee2e6;
+    vertical-align: top;
+}
+
+.table thead th {
+    background-color: #0f6cac !important;
+    font-weight: 700;
+    color: #fff;
+    border-bottom: 2px solid #dee2e6;
+}
+.table-container {
+    margin-top: 30px; /* separa la tabla de la barra de navegación superior */
+}
+
+/* Alternar color filas (striped) */
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: #085ca6;
+}
+
+/* --------------------------
+   Contenedor de tabla
+--------------------------- */
+.table-container {
+    margin-bottom: 1rem;
+}
+table {
+    width: 100%;              /* Ajusta la tabla al ancho de la página */
+    table-layout: fixed;      /* Fuerza distribución uniforme */
+    border-collapse: collapse;
+}
+
+td, th {
+    word-wrap: break-word;    /* Rompe palabras largas */
+    overflow-wrap: break-word;
+    padding: 4px;
+    font-size: 12px;
+}
+
+/* --------------------------
+   Alertas
+--------------------------- */
+.alert {
+    padding: 0.5rem 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid transparent;
+    border-radius: 0.25rem;
+}
+
+.alert-info {
+    color: #0c5460;
+    background-color: #d1ecf1;
+    border-color: #bee5eb;
+}
+
+/* --------------------------
+   Botones
+--------------------------- */
+.btn {
+    display: inline-block;
+    font-weight: 400;
+    color: #fff;
+    background-color: #007bff;
+    border: 1px solid #007bff;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.9rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    text-align: center;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+/* --------------------------
+   Flex y posicionamiento
+--------------------------- */
+.d-flex {
+    display: flex !important;
+}
+
+.align-items-center {
+    align-items: center !important;
+}
+
+.position-absolute { position: absolute !important; }
+.top-50 { top: 50% !important; }
+.start-50 { left: 50% !important; }
+.translate-middle { transform: translate(-50%, -50%) !important; }
+
+.text-white { color: #fff !important; }
+.fw-bold { font-weight: 700 !important; }
+
+/* --------------------------
+   Margenes y padding
+--------------------------- */
+.mb-4 { margin-bottom: 1rem !important; }
+.p-4 { padding: 1rem !important;}
+@page {
+    size: A4 landscape;   /* A4 horizontal */
+}

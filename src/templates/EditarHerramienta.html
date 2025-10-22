@@ -1,163 +1,153 @@
-{%extends './Base.html'%}
-{%block title%}
+{% extends './Base.html' %}
+{% block title %}
 Edición de Herramienta
-{%endblock%}
-{%block body%}
-    <nav class="navbar navbar-light justify-content-between" style="background-color: #f2f2f2;">
-        <a class="navbar-brand">Hola, 🙋🏻‍♂️{{ session['nombre'] }}</a>
+{% endblock %}
 
-            {%if session['rol'] == 1%}
-                <a class="navbar-brand">Rol: Administrador</a>
-            {%elif session['rol'] == 2%}
-                <a class="navbar-brand">Rol: Almacenista</a>
-            {%else%}
-                <a class="navbar-brand">Rol: Tecnico</a>
-            {%endif%}
-
-        <form action="{{ url_for('logout') }}" method="get" class="form-inline">
-            <button type="submit" class="btn btn-outline-danger">Salir</button>
-        </form>
-    </nav>
-
-    <nav  class="navbar navbar-light" style="background-color: #0f6cac;">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="{{ url_for('index') }}">ENERGY SITE, S.A. DE C.V.</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNavDropdown">
-            <ul class="navbar-nav">
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('historial') }}">Historial de movimientos</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('regisherra') }}">Checar asignación de herramienta</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('buscar_herramienta') }}">Buscador de herramienta</a></li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Herramienta</a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="{{ url_for('entra_sale') }}">Entrada y Salida</a></li>
-                        <li><a class="dropdown-item" href="{{ url_for('regisherra') }}">Registrar</a></li>
-                        <li><a class="dropdown-item" href="{{ url_for('editar_herramienta') }}">Editar</a></li>
-                        <li><a class="dropdown-item" href="{{ url_for('eliminar_herramienta') }}">Eliminar</a></li>
-                    </ul>
-                </li>
-            </ul>
-        </div>
-    </div>
+{% block body %}
+<!-- NAV SUPERIOR -->
+<nav class="navbar navbar-light bg-light flex-wrap justify-content-between px-3">
+  <div>
+    <span class="navbar-brand mb-0 h6">Hola, 🙋🏻‍♂️ {{ session['nombre'] }}</span>
+  </div>
+  <div>
+    {% if session['rol'] == 1 %}
+      <span class="navbar-text me-3 text-secondary">Rol: Administrador</span>
+    {% elif session['rol'] == 2 %}
+      <span class="navbar-text me-3 text-secondary">Rol: Almacenista</span>
+    {% else %}
+      <span class="navbar-text me-3 text-secondary">Rol: Técnico</span>
+    {% endif %}
+  </div>
+  <form action="{{ url_for('logout') }}" method="get">
+    <button type="submit" class="btn btn-outline-danger btn-sm">Salir</button>
+  </form>
 </nav>
-    
 
-<div class="container vh-100 d-flex justify-content-center align-items-center">
-    <div class="w-100" style="max-width: 800px;">
-        <!-- ALERTAS -->
-        {% with mensajes = get_flashed_messages(with_categories=true) %}
-            {% if mensajes %}
-                {% for categoria, mensaje in mensajes %}
-                    <div class="alert alert-{{ categoria }} alert-dismissible fade show" role="alert">
-                        {{ mensaje }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+<!-- NAV PRINCIPAL -->
+<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #0f6cac;">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="{{ url_for('index') }}">ENERGY SITE, S.A. DE C.V.</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown">
+      <span class="navbar-toggler-icon"></span>
+    </button>
 
-        <!-- FORMULARIO -->
-        <form action="/EdiHerra" method="GET" class="bg-white p-4 shadow rounded">
-                <h4><span class="input-group-text">Ingresa el Código Interno para empezar a editar</span></h4>
-                <input type="text" placeholder="Codigo Interno" name="codigoinh" class="form-control" required>
-
-                <button type="submit" class="btn btn-primary w-100 d-flex align-items-center justify-content-center" id="cargarBtn">
-                <span id="btnText">Cargar Datos</span>
-                <div id="inlineSpinner" class="spinner-border text-light spinner-border-sm ms-2 d-none" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-            </button>
-            <script>
-                document.addEventListener("DOMContentLoaded", function () {
-                const form = document.querySelector("form");
-                const spinner = document.getElementById("inlineSpinner");
-                const btn = document.getElementById("cargarBtn");
-                const btnText = document.getElementById("btnText");
-
-                form.addEventListener("submit", function () {
-                    spinner.classList.remove("d-none");
-                    btn.disabled = true;
-                    btnText.textContent = "Cargando...";
-                });
-            });
-            </script>
-
-        </form>
-
-        <form action="/EdiHerra" method="POST" class="bg-white p-4 shadow rounded">
-            <h4><label class="form-label">Actualiza los datos que desees</label></h4>
-            <div class="input-group mb-3">
-        
-                <span class="input-group-text">Nombre</span>
-                <input type="text" placeholder="nombre herramienta" name="nombreh" value="{{ datos['name'] }}" class="form-control">
-                <span class="input-group-text">Tipo</span>
-                <input type="text" placeholder="Tipo Herramienta" name="tipoh" value="{{ datos['tool_type'] }}" class="form-control">
-                <span class="input-group-text">Marca</span>
-                <input type="text" placeholder="brand" name="brandh" value="{{ datos['brand'] }}" class="form-control">
-            </div>
-
-            <label class="form-label">Seriales</label>
-            <div class="input-group mb-3">
-                <span class="input-group-text">Modelo</span>
-                <input type="text" placeholder="Modelo" name="modeloh" value="{{ datos['model'] }}" class="form-control">
-                <span class="input-group-text">Número de serie</span>
-                <input type="text" placeholder="Numero de serie" name="serieh" value="{{ datos['serial_number'] }}" class="form-control">
-                <input type="hidden" placeholder="Codigo Interno" name="codigoinh" value="{{ datos['internal_code'] }}" class="form-control" required>
-            </div>
-
-            <label class="form-label">Status</label>
-            <div class="input-group mb-3">
-                <span class="input-group-text">Estatus</span>
-                <select name="statush" class="form-select">
-                    <option value="operativa" {% if datos['status'] == 'operativa' %}selected{%endif%}>Operativa</option>
-                    <option value="en_reparacion" {% if datos['status'] == 'en_reparacion' %}selected{%endif%}>En Reparación</option>
-                    <option value="extraviada" {% if datos['status'] == 'extraviada' %}selected{%endif%}>Extraviada</option>
-                    <option value="obsoleta" {%if datos['status'] == 'obsoleta' %}selected{%endif%}>Obsoleta</option>
-                </select>
-            </div>
-
-            <label class="form-label">Asignación</label>
-            <div class="input-group mb-3">
-                <span class="input-group-text">Ubicación</span>
-                <input type="text" placeholder="Localidad" name="localidadh" value="{{ datos['location'] }}" class="form-control">
-                <span class="input-group-text">Responsable</span>
-                <input type="text" placeholder="Nombre" name="responsableh" value="{{ datos['responsible'] }}" class="form-control">
-            </div>
-
-            <div class="input-group mb-3">
-                <span class="input-group-text">$</span>
-                <input type="number" placeholder="Precio" name="precioh" value="{{ datos['price'] }}" class="form-control" min="0" step="0.01" >
-                <span class="input-group-text">Observaciones</span>
-                <textarea class="form-control" name="observacionesh">{{ datos['observations'] }}</textarea>
-            </div>
-
-            <button type="submit" class="btn btn-primary w-100 d-flex align-items-center justify-content-center" id="EdiBtn">
-                <span id="btnText">Editar Herramienta</span>
-                <div id="inlineSpinner" class="spinner-border text-light spinner-border-sm ms-2 d-none" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-            </button>
-            <script>
-                document.addEventListener("DOMContentLoaded", function () {
-                const form = document.querySelector("form");
-                const spinner = document.getElementById("inlineSpinner");
-                const btn = document.getElementById("EdiBtn");
-                const btnText = document.getElementById("btnText");
-
-                form.addEventListener("submit", function () {
-                    spinner.classList.remove("d-none");
-                    btn.disabled = true;
-                    btnText.textContent = "Cargando...";
-                });
-            });
-            </script>
-        </form>
+    <div class="collapse navbar-collapse" id="navbarNavDropdown">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('historial') }}">Historial</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('buscar_herramienta') }}">Buscar</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('inventario') }}">Inventario</a></li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Herramienta</a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="{{ url_for('entra_sale') }}">Entrada/Salida</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('regisherra') }}">Registrar</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('editar_herramienta') }}">Editar</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('eliminar_herramienta') }}">Eliminar</a></li>
+          </ul>
+        </li>
+      </ul>
     </div>
-        </form>
-    </div>
+  </div>
+</nav>
+
+<!-- FORMULARIO -->
+<div class="container my-4">
+  <div class="mx-auto" style="max-width: 800px;">
+    {% with mensajes = get_flashed_messages(with_categories=true) %}
+      {% if mensajes %}
+        {% for categoria, mensaje in mensajes %}
+          <div class="alert alert-{{ categoria }} alert-dismissible fade show" role="alert">
+            {{ mensaje }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form action="/editar_herramienta" method="POST" class="bg-white p-4 shadow-sm rounded">
+      <h4 class="mb-3 text-center">Editar Herramienta</h4>
+
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label">Nombre</label>
+          <input type="text" name="nombreh" value="{{ datos['name'] }}" class="form-control">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Tipo</label>
+          <input type="text" name="tipoh" value="{{ datos['tool_type'] }}" class="form-control">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Marca</label>
+          <input type="text" name="brandh" value="{{ datos['brand'] }}" class="form-control">
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label">Modelo</label>
+          <input type="text" name="modeloh" value="{{ datos['model'] }}" class="form-control">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Serie</label>
+          <input type="text" name="serieh" value="{{ datos['serial_number'] }}" class="form-control">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Código Interno</label>
+          <input type="text" name="codigoinh" value="{{ datos['internal_code'] }}" class="form-control" required>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Estatus</label>
+          <select name="statush" class="form-select">
+            <option value="operativa" {% if datos['status']=='operativa' %}selected{% endif %}>Operativa</option>
+            <option value="en_reparacion" {% if datos['status']=='en_reparacion' %}selected{% endif %}>En Reparación</option>
+            <option value="extraviada" {% if datos['status']=='extraviada' %}selected{% endif %}>Extraviada</option>
+            <option value="obsoleta" {% if datos['status']=='obsoleta' %}selected{% endif %}>Obsoleta</option>
+          </select>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Ubicación</label>
+          <input type="text" name="localidadh" value="{{ datos['location'] }}" class="form-control">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Responsable</label>
+          <input type="text" name="responsableh" value="{{ datos['responsible'] }}" class="form-control">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Precio</label>
+          <input type="number" name="precioh" min="0" step="0.01" value="{{ datos['price'] }}" class="form-control">
+        </div>
+
+        <div class="col-12">
+          <label class="form-label">Observaciones</label>
+          <textarea name="observacionesh" class="form-control" rows="2">{{ datos['observations'] }}</textarea>
+        </div>
+
+        <div class="col-12">
+          <button type="submit" class="btn btn-primary w-100 d-flex align-items-center justify-content-center" id="ediBtn">
+            <span id="btnText">Guardar Cambios</span>
+            <div id="inlineSpinner" class="spinner-border text-light spinner-border-sm ms-2 d-none" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
 </div>
 
-{%endblock%}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const form = document.querySelector("form");
+  const spinner = document.getElementById("inlineSpinner");
+  const btn = document.getElementById("ediBtn");
+  const btnText = document.getElementById("btnText");
+  form.addEventListener("submit", function () {
+    spinner.classList.remove("d-none");
+    btn.disabled = true;
+    btnText.textContent = "Cargando...";
+  });
+});
+</script>
+{% endblock %}

@@ -18,6 +18,7 @@ from Controlador.BuscarH import BuscarH
 from Controlador.Movimientos import Movimientos
 from Controlador.Historial import Historial
 from Controlador.ValidarLogin import ValidarLogin
+from Controlador.Inventario import Inventario
 
 Inv = Flask(__name__)
 Inv.secret_key ="cookies_1_2.3.4_5_6"
@@ -41,7 +42,6 @@ def index():
         return redirect(url_for('login'))
     else:
         return render_template('index.html')
-
 @Inv.route('/login', methods=['GET', 'POST'])
 def login():
     """La funcion sirve para validar el Login"""
@@ -209,7 +209,7 @@ def api_buscar():
 @Inv.route('/entra_sale', methods=['GET', 'POST'])
 @login_required
 def entra_sale():
-    """Esta funciom detecte el tipo de movimiento que se quiere realizar"""
+    """Esta funcion detecte el tipo de movimiento que se quiere realizar"""
     if request.method == 'POST':
         nombrea = request.form.get('nombrea', '').strip()
         nombrer = request.form.get('nombreR', '').strip()
@@ -221,7 +221,7 @@ def entra_sale():
         #El bloque anterior me sirve para obtener las listas con getlist
         # ya que permite obtener varias herramientas
         mov = Movimientos()#creo mi variable para comunicarme con la funcion
-        for i in enumerate(herramientas):
+        for i, herramienta in enumerate(herramientas):
             #recorremos las herramientas con un for ya que son listas y
             # esto me permite realizar todas las inserciones
             locala = localidades[i].strip()
@@ -370,6 +370,36 @@ def reporte():
         response.headers['Content-Type'] = 'application/pdf'
         response.headers['Content-Disposition'] = 'inline; filename=reporte.pdf'
         return response
+@Inv.route('/inventario', methods=['GET','POST'])
+@login_required
+def inventario():
+    if request.method == 'POST':
+        inventar = Inventario()
+        ok, valores = inventar.inv()
+        if ok:
+            # Renderizar HTML para PDF
+            html = render_template("ReporteInventario.html", datos=valores)
+
+            # Ruta absoluta a la carpeta src
+            base_dirs = os.path.abspath(os.path.join(os.path.dirname(__file__)))
+
+            # CSS absoluto
+            css_path = os.path.join(base_dirs, "static", "css", "styleInventario.css")
+
+            # PDF con base_url = carpeta src
+            pdf = HTML(string=html, base_url=base_dirs).write_pdf(
+                stylesheets=[CSS(css_path)]
+                )
+
+            response = make_response(pdf)
+            response.headers['Content-Type'] = 'application/pdf'
+            response.headers['Content-Disposition'] = 'inline; filename=reporteInventario.pdf'
+            return response
+        else:
+            flash(valores, 'Danger')
+            return render_template("Inventario.html")
+    else:
+        return render_template("Inventario.html")
 @Inv.route('/logout')
 def logout():
     """Funcion para cerrar la sesion activa"""
@@ -377,4 +407,4 @@ def logout():
     return redirect(url_for('login'))
 if __name__=='__main__':
     Inv.config.from_object(Config['development'])
-    Inv.run(debug=True)
+    Inv.run(host='0.0.0.0', port=5000, debug=True)

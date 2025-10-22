@@ -5,7 +5,7 @@ from DataBase.Conexion import Conexion, Error
 @dataclasses.dataclass
 class ValidarLogin:
     """Creo la clase Validar Login para poder interactuar con este archivo"""
-    def validaruser(self, user):
+    def validaruser(self, user) -> tuple[bool, list]:
         """Funcion para validar el usuario"""
         db = Conexion()
         ok, Conn = db.conectar()
@@ -23,7 +23,7 @@ class ValidarLogin:
             finally:#ejecuta si o si el cerrado del cursor para no dejarlo abierto
                 cur.close()
                 Conn.close()
-    def validapswd(self, pswd, user):
+    def validapswd(self, pswd, user) -> tuple[bool, list]:
         """Funcion para validar la contraseña"""
         db = Conexion()
         ok, Conn = db.conectar()
@@ -46,7 +46,7 @@ class ValidarLogin:
             finally:#ejecuta si o si el cerrado del cursor para no dejarlo abierto
                 cur.close()
                 Conn.close()
-    def obtenernombre(self,user):
+    def obtenernombre(self,user) -> tuple[bool, list]:
         """Obtengo el nombre de el usuario de la base de datos para guardarlo en sesion"""
         db = Conexion()
         ok, Conn = db.conectar()

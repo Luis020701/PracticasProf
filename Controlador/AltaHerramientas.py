@@ -5,7 +5,9 @@ from DataBase.Conexion import Conexion , Error
 @dataclasses.dataclass
 class AltaHerramientas :
     """Clase para dar de alta herramientas en la base de datos"""
-    def altah(self,nombre,tipo,brand,modelo,serie,codigoin,status,local,respon,precio,obs):
+    def altah(self,nombre,tipo,brand,modelo,
+              serie,codigoin,status,local,
+              respon,precio,obs) -> tuple[bool, list]:
         """Funcion para dar de alta"""
         db = Conexion()
         ok, Conn = db.conectar()
@@ -39,7 +41,7 @@ class AltaHerramientas :
             finally:#ejecuta si o si el cerrado del cursor para no dejarlo abierto
                 cur.close()
                 Conn.close()
-    def eliminarh(self, codigoinh):
+    def eliminarh(self, codigoinh) -> tuple[bool, list]:
         """Recibo la el codigo interno para poder eliminar  la herramienta"""
         db = Conexion()
         ok, Conn = db.conectar()
@@ -47,7 +49,7 @@ class AltaHerramientas :
             return False, Conn
         else:
             cur = Conn.cursor()
-            sql = "DELETE FROM tools WHERE internal_code = %s"
+            sql = "UPDATE tools SET status = 'eliminada' WHERE internal_code = %s"#hago solo un borrado logico
             try:#El try evalua la sentencia y ejecuta el codigo en caso de que funcione
                 cur.execute(sql,(codigoinh,))
                 if cur.rowcount == 0:#Verifico si encontro el registro
@@ -60,16 +62,17 @@ class AltaHerramientas :
                 return False, str(e)
             finally:#ejecuta si o si el cerrado del cursor para no dejarlo abierto
                 cur.close()
-                Conn.close()
-                
-    def editah(self,nombre,tipo,brand,modelo,serie,codigoin,status,local,respon,precio,obs):
+                Conn.close()               
+    def editah(self,nombre,tipo,brand,modelo,
+               serie,codigoin,status,local,
+               respon,precio,obs) -> tuple[bool, list]:
         """Funcion para editar """
         db = Conexion()
         ok, Conn = db.conectar()
         if not ok:
             return False, Conn
         else:
-            sql= "UPDATE TOOLS SET name=%s, brand=%s, model=%s, serial_number=%s, tool_type=%s, status=%s, location=%s, responsible=%s, price=%s, created_at=%s, observations=%s WHERE internal_code = %s"
+            sql= "UPDATE TOOLS SET name=%s, brand=%s, model=%s, serial_number=%s, tool_type=%s, status=%s, location=%s, responsible=%s, price=%s, created_at=%s, observations=%s WHERE internal_code = %s AND status <> 'eliminada'"
             datos=(#Tupla para la sentencia parametrizada
                 nombre,
                 brand,
@@ -94,7 +97,7 @@ class AltaHerramientas :
             finally:
                 cur.close()
                 Conn.close()
-    def cargardatos(self,codigoinh):
+    def cargardatos(self,codigoinh) -> tuple[bool, list]:
         """Uso esta funcion para cargar los datos almacenados para posteriormente ser editados"""
         db = Conexion()
         ok, Conn = db.conectar()
@@ -102,7 +105,7 @@ class AltaHerramientas :
             return False, Conn
         else:
             cur = Conn.cursor(dictionary=True)
-            sql = "SELECT * from tools WHERE internal_code = %s"
+            sql = "SELECT * from tools WHERE internal_code = %s and status <> 'eliminada'"
             try:
                 cur.execute(sql,(codigoinh,))
                 resultado = cur.fetchone()

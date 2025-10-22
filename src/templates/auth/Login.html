@@ -1,62 +1,78 @@
 {% extends './Base.html' %}
 {% block title %}Login{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/styleLogin.css', _external=True) }}">
+{% endblock %}
 {% block body %}
-<!-- ALERTA -->
+
+<!-- Funcion de validacion de alertas -->
 <div class="position-absolute top-0 start-50 translate-middle-x mt-3" style="z-index: 1050; max-width: 400px; width: 100%;">
-    {% with mensajes = get_flashed_messages(with_categories=true) %}
-        {% if mensajes %}
+    {% with mensajes = get_flashed_messages(with_categories=true) %}<!--Obtengo en la variable mensajes lo que sea que tenga-->
+        {% if mensajes %}<!--valido si obtuve al en la variable-->
             {% for categoria, mensaje in mensajes %}
-                <div class="alert alert-{{ categoria }} alert-dismissible fade show" role="alert">
+                <div class="alert alert-{{ categoria }} alert-dismissible fade show" role="alert"><!--si es asi muestro en un div la alerta-->
                     {{ mensaje }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button><!--boton para cerrar la alerta-->
                 </div>
             {% endfor %}
         {% endif %}
     {% endwith %}
 </div>
+
+<!-- Contenedor centrado -->
 <div class="container vh-100 d-flex justify-content-center align-items-center">
-    <form action="/login" method="POST" class="bg-white p-4 shadow rounded" style="max-width: 400px; width: 100%;">
-        <img src="{{ url_for('static', filename='img/LogoTITEmpresarial.png') }}" alt="Logo" class="img-fluid mx-auto d-block mb-3" style="max-width: 150px;">
-        <h3 class="text-center mb-4">Iniciar sesión</h3>
-
-        <div class="mb-3">
-            <label for="username" class="form-label">Usuario</label>
-            <div class="input-group">
-                <span class="input-group-text">@</span>
-                <input type="text" id="username" name="username" placeholder="UserName" class="form-control" required>
-            </div>
-            <small class="form-text text-muted">Nunca compartas tus credenciales con nadie.</small>
+    <div class="card shadow rounded p-4" style="max-width: 400px; width: 100%;">
+        <!-- Logotipo de la empresa -->
+        <div class="text-center mb-3">
+            <img src="{{ url_for('static', filename='img/LogoTITEmpresarial.png') }}" alt="Logo" class="img-fluid" style="max-width: 150px;">
         </div>
 
-        <div class="mb-3">
-            <label for="password" class="form-label">Contraseña</label>
-            <div class="input-group">
-                <span class="input-group-text">🔒</span>
-                <input type="password" id="password" name="password" placeholder="Password" class="form-control" required>
-            </div>
-        </div>
+        <!-- Título -->
+        <h3 class="text-center mb-4 fw-bold">Iniciar sesión</h3>
 
-        <button type="submit" class="btn btn-primary w-100 d-flex align-items-center justify-content-center" id="loginBtn">
-            <span id="btnText">Iniciar sesión</span>
-            <div id="inlineSpinner" class="spinner-border text-light spinner-border-sm ms-2 d-none" role="status">
-                <span class="visually-hidden">Loading...</span>
+        <!-- Formulario -->
+        <form action="/login" method="POST">
+            <div class="mb-3">
+                <label for="username" class="form-label fw-semibold">Usuario</label>
+                <div class="input-group">
+                    <span class="input-group-text">@</span>
+                    <input type="text" id="username" name="username" placeholder="Usuario" class="form-control" required>
+                </div>
+                <small class="form-text text-muted">Nunca compartas tus credenciales con nadie.</small>
             </div>
-        </button>
-    </form>
+
+            <div class="mb-3">
+                <label for="password" class="form-label fw-semibold">Contraseña</label>
+                <div class="input-group">
+                    <span class="input-group-text">🔒</span>
+                    <input type="password" id="password" name="password" placeholder="Contraseña" class="form-control" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 d-flex align-items-center justify-content-center" id="loginBtn">
+                <span id="btnText">Iniciar sesión</span>
+                <div id="inlineSpinner" class="spinner-border text-light spinner-border-sm ms-2 d-none" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+            </button>
+        </form>
+    </div>
 </div>
 
+<!-- Script Para la muestra de carga de login(meramente diseño y presentacion) -->
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const form = document.querySelector("form");
-        const spinner = document.getElementById("inlineSpinner");
-        const btn = document.getElementById("loginBtn");
-        const btnText = document.getElementById("btnText");
+document.addEventListener("DOMContentLoaded", function () {
+    const form = document.querySelector("form");
+    const spinner = document.getElementById("inlineSpinner");
+    const btn = document.getElementById("loginBtn");
+    const btnText = document.getElementById("btnText");
 
-        form.addEventListener("submit", function () {
-            spinner.classList.remove("d-none");
-            btn.disabled = true;
-            btnText.textContent = "Cargando...";
-        });
+    form.addEventListener("submit", function () {
+        spinner.classList.remove("d-none");
+        btn.disabled = true;
+        btnText.textContent = "Cargando...";
     });
+});
 </script>
+
 {% endblock %}

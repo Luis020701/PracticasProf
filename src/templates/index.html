@@ -1,51 +1,92 @@
 {% extends './Base.html' %}
-{% block title %}
-Home
-{% endblock %}
+{% block title %}Home{% endblock %}
 
 {% block body %}
-
-<!-- Barra superior (usuario + rol + logout) -->
-<nav class="navbar navbar-light justify-content-between" style="background-color: #f2f2f2;">
-  <a class="navbar-brand">Hola, 🙋🏻‍♂️ {{ session['nombre'] }}</a>
-  
+<!-- Barra de informacion general de sesion: nombre y rol -->
+<nav class="navbar navbar-light bg-light flex-wrap justify-content-between px-3">
+  <span class="navbar-brand mb-0 h6">Hola, 🙋🏻‍♂️ {{ session['nombre'] }}</span>
   {% if session['rol'] == 1 %}
-    <a class="navbar-brand">Rol: Administrador</a>
+    <span class="navbar-text me-3 text-secondary">Rol: Administrador</span>
   {% elif session['rol'] == 2 %}
-    <a class="navbar-brand">Rol: Almacenista</a>
+    <span class="navbar-text me-3 text-secondary">Rol: Almacenista</span>
   {% else %}
-    <a class="navbar-brand">Rol: Técnico</a>
+    <span class="navbar-text me-3 text-secondary">Rol: Técnico</span>
   {% endif %}
-
-  <form action="{{ url_for('logout') }}" method="get" class="form-inline">
-    <button type="submit" class="btn btn-outline-danger">Salir</button>
+  <form action="{{ url_for('logout') }}" method="get">
+    <button type="submit" class="btn btn-outline-danger btn-sm">Salir</button>
   </form>
 </nav>
 
-<!-- Barra principal -->
-    <nav  class="navbar navbar-light" style="background-color: #0f6cac;">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="{{ url_for('index') }}">ENERGY SITE, S.A. DE C.V.</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNavDropdown">
-            <ul class="navbar-nav">
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('historial') }}">Historial de movimientos</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('regisherra') }}">Checar asignación de herramienta</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('buscar_herramienta') }}">Buscador de herramienta</a></li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Herramienta</a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="{{ url_for('entra_sale') }}">Entrada y Salida</a></li>
-                        <li><a class="dropdown-item" href="{{ url_for('regisherra') }}">Registrar</a></li>
-                        <li><a class="dropdown-item" href="{{ url_for('editar_herramienta') }}">Editar</a></li>
-                        <li><a class="dropdown-item" href="{{ url_for('eliminar_herramienta') }}">Eliminar</a></li>
-                    </ul>
-                </li>
-            </ul>
-        </div>
+<!-- Barra Superios Principal -->
+<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #0f6cac;">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="{{ url_for('index') }}">ENERGY SITE, S.A. DE C.V.</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNavDropdown">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('historial') }}">Historial</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('buscar_herramienta') }}">Buscador</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('inventario') }}">Inventario</a></li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Herramienta</a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="{{ url_for('entra_sale') }}">Entrada/Salida</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('regisherra') }}">Registrar</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('editar_herramienta') }}">Editar</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('eliminar_herramienta') }}">Eliminar</a></li>
+          </ul>
+        </li>
+      </ul>
     </div>
+  </div>
 </nav>
 
+<!-- Contenedor general donde almaceno cards para una mejor presentacion de las funciones del proyecto y uso del home -->
+<div class="container my-4"> <!-- Este es el Div general de las cards -->
+  <!--Este div me permite ajustar el responsive de la pagina-->
+  <div class="row g-4">
+    <!--Este div es que el contiene el card de Historial-->
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-body text-center">
+          <h5 class="card-title">Historial de movimientos</h5>
+          <p class="card-text">Consulta y descarga los registros de todas las herramientas.</p>
+          <a href="{{ url_for('historial') }}" class="btn btn-primary">Ir al Historial</a>
+        </div>
+      </div>
+    </div>
+    <!--Este div es que el contiene el card de Buscador-->
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-body text-center">
+          <h5 class="card-title">Buscador de herramienta</h5>
+          <p class="card-text">Encuentra rápidamente una herramienta por su código interno o nombre.</p>
+          <a href="{{ url_for('buscar_herramienta') }}" class="btn btn-primary">Buscar Herramienta</a>
+        </div>
+      </div>
+    </div>
+    <!--Este div es que el contiene el card de Registro-->
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-body text-center">
+          <h5 class="card-title">Registra Nuevas herramientas</h5>
+          <p class="card-text">Agrega Nuevas herramientas a tu inventario.</p>
+          <a href="{{ url_for('regisherra') }}" class="btn btn-primary">Ir al Registro</a>
+        </div>
+      </div>
+    </div>
+    <!--Este div es que el contiene el card de Edicion-->
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-body text-center">
+          <h5 class="card-title">Edita tus herramientas</h5>
+          <p class="card-text">Edita y ajusta los datos de tus herramientas.</p>
+          <a href="{{ url_for('editar_herramienta') }}" class="btn btn-primary">Edita</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

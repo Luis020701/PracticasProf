@@ -5,7 +5,9 @@ from DataBase.Conexion import Conexion, Error
 @dataclasses.dataclass
 class Movimientos:
     """la clase movientos me permite implementar funciones para realizar los moviemientos deseados"""
-    def mov(self,nombre,nombrer,local,accion,obs,herra):
+    def mov(self,nombre,nombrer,
+            local,accion,
+            obs,herra) -> tuple[bool, list]:
         """Esta funcion me sirve para dar entrada o salida a la herramienta"""
         db = Conexion()
         ok, Conn = db.conectar()
@@ -16,7 +18,7 @@ class Movimientos:
                 cur = Conn.cursor()
                 cur1=Conn.cursor()
                 cur2=Conn.cursor()
-                sql="SELECT id FROM tools WHERE internal_code = %s"#obtengo el id de la herramienta en base al nombre
+                sql="SELECT id FROM tools WHERE internal_code = %s AND status <> 'eliminada'"#obtengo el id de la herramienta en base al nombre
                 cur.execute(sql,(herra,))
                 res=cur.fetchone()
                 if res is not None:
@@ -56,7 +58,8 @@ class Movimientos:
                 cur2.close()
                 Conn.close()
     
-    def estatusMov(self,herra):
+    def estatusMov(self,herra) -> tuple[bool, list]:
+        """Lo que checa esta funcion es el estatus de las herramientas para futuras validaciones"""
         db = Conexion()
         ok, Conn = db.conectar()
         if not ok:
@@ -65,7 +68,7 @@ class Movimientos:
             try:
                 cur=Conn.cursor()
                 cur1=Conn.cursor()
-                sql="SELECT id, status FROM tools WHERE internal_code = %s"#obtengo el id de la herramienta para poder filtrar los  al igual que su status para evaluarlo
+                sql="SELECT id, status FROM tools WHERE internal_code = %s AND status <> 'eliminada'"#obtengo el id de la herramienta para poder filtrar los  al igual que su status para evaluarlo
                 cur.execute(sql,(herra,))
                 res=cur.fetchone()
                 if res is  None:

@@ -1,0 +1,71 @@
+{% extends './Base.html' %}
+{% block title %}Reporte Inventario{% endblock %}
+
+{% block body %}
+<!-- Barra superior -->
+<nav class="navbar navbar-light bg-light flex-wrap justify-content-between px-3">
+  <span class="navbar-brand mb-0 h6">Hola, 🙋🏻‍♂️ {{ session['nombre'] }}</span>
+  {% if session['rol'] == 1 %}
+    <span class="navbar-text me-3 text-secondary">Rol: Administrador</span>
+  {% elif session['rol'] == 2 %}
+    <span class="navbar-text me-3 text-secondary">Rol: Almacenista</span>
+  {% else %}
+    <span class="navbar-text me-3 text-secondary">Rol: Técnico</span>
+  {% endif %}
+  <form action="{{ url_for('logout') }}" method="get">
+    <button type="submit" class="btn btn-outline-danger btn-sm">Salir</button>
+  </form>
+</nav>
+
+<!-- Barra principal -->
+<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #0f6cac;">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="{{ url_for('index') }}">ENERGY SITE, S.A. DE C.V.</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNavDropdown">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('historial') }}">Historial</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('buscar_herramienta') }}">Buscador</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('inventario') }}">Inventario</a></li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Herramienta</a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="{{ url_for('entra_sale') }}">Entrada/Salida</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('regisherra') }}">Registrar</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('editar_herramienta') }}">Editar</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('eliminar_herramienta') }}">Eliminar</a></li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Contenedor principal -->
+<div class="container vh-100 d-flex justify-content-center align-items-center">
+  <div class="w-100" style="max-width: 800px;">
+    <!-- ALERTAS -->
+    {% with mensajes = get_flashed_messages(with_categories=true) %}
+      {% if mensajes %}
+        {% for categoria, mensaje in mensajes %}
+          <div class="alert alert-{{ categoria }} alert-dismissible fade show" role="alert">
+            {{ mensaje }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <!-- FORMULARIO -->
+    <form action="/inventario" method="POST" class="bg-white p-4 shadow rounded" target="_blank">
+      <h4 class="mb-3 text-center">Inventario</h4>
+      <div class="alert alert-info text-center">
+        <strong>Nota:</strong> Pulsa el botón para descargar el inventario completo.
+      </div>
+      <button type="submit" class="btn btn-primary w-100">Descargar reporte</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

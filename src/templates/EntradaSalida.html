@@ -1,132 +1,122 @@
-{%extends './Base.html'%}
-{%block title%}
+{% extends './Base.html' %}
+{% block title %}
 Entrada y Salida
-{%endblock%}
-{%block body%}
-    <nav class="navbar navbar-light justify-content-between" style="background-color: #f2f2f2;">
-        <a class="navbar-brand">Hola, 🙋🏻‍♂️{{ session['nombre'] }}</a>
+{% endblock %}
 
-            {%if session['rol'] == 1%}
-                <a class="navbar-brand">Rol: Administrador</a>
-            {%elif session['rol'] == 2%}
-                <a class="navbar-brand">Rol: Almacenista</a>
-            {%else%}
-                <a class="navbar-brand">Rol: Tecnico</a>
-            {%endif%}
-
-        <form action="{{ url_for('logout') }}" method="get" class="form-inline">
-            <button type="submit" class="btn btn-outline-danger">Salir</button>
-        </form>
-    </nav>
-
-    <nav  class="navbar navbar-light" style="background-color: #0f6cac;">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="{{ url_for('index') }}">ENERGY SITE, S.A. DE C.V.</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNavDropdown">
-            <ul class="navbar-nav">
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('historial') }}">Historial de movimientos</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('regisherra') }}">Checar asignación de herramienta</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('buscar_herramienta') }}">Buscador de herramienta</a></li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Herramienta</a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="{{ url_for('entra_sale') }}">Entrada y Salida</a></li>
-                        <li><a class="dropdown-item" href="{{ url_for('regisherra') }}">Registrar</a></li>
-                        <li><a class="dropdown-item" href="{{ url_for('editar_herramienta') }}">Editar</a></li>
-                        <li><a class="dropdown-item" href="{{ url_for('eliminar_herramienta') }}">Eliminar</a></li>
-                    </ul>
-                </li>
-            </ul>
-        </div>
-    </div>
+{% block body %}
+<!-- NAV SUPERIOR -->
+<nav class="navbar navbar-light bg-light flex-wrap justify-content-between px-3">
+  <div>
+    <span class="navbar-brand mb-0 h6">Hola, 🙋🏻‍♂️ {{ session['nombre'] }}</span>
+  </div>
+  <div>
+    {% if session['rol'] == 1 %}
+      <span class="navbar-text me-3 text-secondary">Rol: Administrador</span>
+    {% elif session['rol'] == 2 %}
+      <span class="navbar-text me-3 text-secondary">Rol: Almacenista</span>
+    {% else %}
+      <span class="navbar-text me-3 text-secondary">Rol: Técnico</span>
+    {% endif %}
+  </div>
+  <form action="{{ url_for('logout') }}" method="get">
+    <button type="submit" class="btn btn-outline-danger btn-sm">Salir</button>
+  </form>
 </nav>
-    
 
-<div class="container vh-100 d-flex justify-content-center align-items-center">
-    <div class="w-100" style="max-width: 1200px;">
-        <!-- ALERTAS -->
-        {% with mensajes = get_flashed_messages(with_categories=true) %}
-            {% if mensajes %}
-                {% for categoria, mensaje in mensajes %}
-                    <div class="alert alert-{{ categoria }} alert-dismissible fade show" role="alert">
-                        {{ mensaje }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-
-        <!-- FORMULARIO -->
-        <form action="/entrasale" method="POST" class="bg-white p-4 shadow rounded">
-    <h4><label class="form-label">Entrada y Salida</label></h4>
-    <div class="alert alert-info" role="info">
-        <strong>Recordatorio:</strong> Recuerda que si no Recuerdas el Codigo interno de la herramienta puedes usar el Buscador🔎
-    </div>
-
-
-    <div class="input-group mb-3">
-        <span class="input-group-text">Quien Registra la acción:</span>
-        <input type="text" name="nombrea" class="form-control" value="{{ session['nombre'] }}" readonly class="form-control bg-light">
-        <span class="input-group-text">Quien recibe o entrega:</span>
-        <input type="text" name="nombreR" class="form-control">
-    </div>
-
-    <div id="accionesContainer">
-        <!-- Primer bloque -->
-        <div class="accion-block input-group mb-3">
-            <span class="input-group-text">Localidad:</span>
-            <input type="text" name="locala[]" class="form-control" required>
-            <span class="input-group-text">Código Herramienta:</span>
-            <input type="text" name="herra[]" class="form-control">
-            <span class="input-group-text">Acción:</span>
-            <select name="acciona[]" class="form-select">
-                <option value="entrada">Entrada</option>
-                <option value="salida">Salida</option>
-            </select>
-            <span class="input-group-text">Observaciones:</span>
-            <input type="text" name="observacionesa[]" class="form-control">
-        </div>
-    </div>
-
-    <button type="button" class="btn btn-secondary mb-3" onclick="agregarAccion()">+ Añadir otra herramienta</button>
-
-    <button type="submit" class="btn btn-primary w-100">
-        Registrar Acciones
+<!-- NAV PRINCIPAL -->
+<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #0f6cac;">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="{{ url_for('index') }}">ENERGY SITE, S.A. DE C.V.</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown">
+      <span class="navbar-toggler-icon"></span>
     </button>
-</form>
+    <div class="collapse navbar-collapse" id="navbarNavDropdown">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('historial') }}">Historial</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('buscar_herramienta') }}">Buscar</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('inventario') }}">Inventario</a></li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Herramienta</a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="{{ url_for('entra_sale') }}">Entrada/Salida</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('regisherra') }}">Registrar</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('editar_herramienta') }}">Editar</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('eliminar_herramienta') }}">Eliminar</a></li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- FORMULARIO -->
+<div class="container my-4">
+  <div class="mx-auto" style="max-width: 900px;">
+    {% with mensajes = get_flashed_messages(with_categories=true) %}
+      {% if mensajes %}
+        {% for categoria, mensaje in mensajes %}
+          <div class="alert alert-{{ categoria }} alert-dismissible fade show" role="alert">
+            {{ mensaje }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form action="/entra_sale" method="POST" class="bg-white p-4 shadow-sm rounded">
+      <h4 class="mb-3 text-center">Entrada y Salida de Herramientas</h4>
+
+      <div class="alert alert-info" role="alert">
+        <strong>Recordatorio:</strong> Si no recuerdas el Código Interno, puedes usar el Buscador 🔎
+      </div>
+
+      <div class="row g-3 mb-3">
+        <div class="col-md-6">
+          <label class="form-label">Quien registra la acción</label>
+          <input type="text" name="nombrea" class="form-control bg-light" value="{{ session['nombre'] }}" readonly>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Quien recibe o entrega</label>
+          <input type="text" name="nombreR" class="form-control">
+        </div>
+      </div>
+
+      <div id="accionesContainer">
+        <div class="accion-block row g-3 mb-3">
+          <div class="col-md-3">
+            <label class="form-label">Localidad</label>
+            <input type="text" name="locala[]" class="form-control" required>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Código Herramienta</label>
+            <input type="text" name="herra[]" class="form-control">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Acción</label>
+            <select name="acciona[]" class="form-select">
+              <option value="entrada">Entrada</option>
+              <option value="salida">Salida</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Observaciones</label>
+            <input type="text" name="observacionesa[]" class="form-control">
+          </div>
+        </div>
+      </div>
+
+      <button type="button" class="btn btn-secondary mb-3" onclick="agregarAccion()">+ Añadir otra herramienta</button>
+      <button type="submit" class="btn btn-primary w-100">Registrar Acciones</button>
+    </form>
+  </div>
+</div>
 
 <script>
 function agregarAccion() {
-    const container = document.getElementById("accionesContainer");
-    const nuevo = container.firstElementChild.cloneNode(true);
-
-    // Limpiar valores
-    nuevo.querySelectorAll("input, select").forEach(el => el.value = "");
-
-    container.appendChild(nuevo);
+  const container = document.getElementById("accionesContainer");
+  const nuevo = container.firstElementChild.cloneNode(true);
+  nuevo.querySelectorAll("input").forEach(el => el.value = "");
+  container.appendChild(nuevo);
 }
 </script>
-            <script>
-                document.addEventListener("DOMContentLoaded", function () {
-                const form = document.querySelector("form");
-                const spinner = document.getElementById("inlineSpinner");
-                const btn = document.getElementById("regisBtn");
-                const btnText = document.getElementById("accionBtn");
-
-                form.addEventListener("submit", function () {
-                    spinner.classList.remove("d-none");
-                    btn.disabled = true;
-                    btnText.textContent = "Cargando...";
-                });
-            });
-            </script>
-        </form>
-    </div>
-        </form>
-    </div>
-</div>
-
-{%endblock%}
+{% endblock %}

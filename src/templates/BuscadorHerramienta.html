@@ -1,134 +1,137 @@
-{%extends './Base.html'%}
-{%block title%}
+{% extends './Base.html' %}
+{% block title %}
 🔎 Buscar Herramienta
-{%endblock%}
-{%block body%}
-    <nav class="navbar navbar-light justify-content-between" style="background-color: #f2f2f2;">
-        <a class="navbar-brand">Hola, 🙋🏻‍♂️{{ session['nombre'] }}</a>
+{% endblock %}
 
-            {%if session['rol'] == 1%}
-                <a class="navbar-brand">Rol: Administrador</a>
-            {%elif session['rol'] == 2%}
-                <a class="navbar-brand">Rol: Almacenista</a>
-            {%else%}
-                <a class="navbar-brand">Rol: Tecnico</a>
-            {%endif%}
-
-        <form action="{{ url_for('logout') }}" method="get" class="form-inline">
-            <button type="submit" class="btn btn-outline-danger">Salir</button>
-        </form>
-    </nav>
-
-    <nav  class="navbar navbar-light" style="background-color: #0f6cac;">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="{{ url_for('index') }}">ENERGY SITE, S.A. DE C.V.</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNavDropdown">
-            <ul class="navbar-nav">
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('historial') }}">Historial de movimientos</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('regisherra') }}">Checar asignación de herramienta</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('buscar_herramienta') }}">Buscador de herramienta</a></li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Herramienta</a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="{{ url_for('entra_sale') }}">Entrada y Salida</a></li>
-                        <li><a class="dropdown-item" href="{{ url_for('regisherra') }}">Registrar</a></li>
-                        <li><a class="dropdown-item" href="{{ url_for('editar_herramienta') }}">Editar</a></li>
-                        <li><a class="dropdown-item" href="{{ url_for('eliminar_herramienta') }}">Eliminar</a></li>
-                    </ul>
-                </li>
-            </ul>
-        </div>
-    </div>
+{% block body %}
+<!-- NAV SUPERIOR -->
+<nav class="navbar navbar-light bg-light flex-wrap justify-content-between px-3">
+  <div>
+    <span class="navbar-brand mb-0 h6">Hola, 🙋🏻‍♂️ {{ session['nombre'] }}</span>
+  </div>
+  <div>
+    {% if session['rol'] == 1 %}
+      <span class="navbar-text me-3 text-secondary">Rol: Administrador</span>
+    {% elif session['rol'] == 2 %}
+      <span class="navbar-text me-3 text-secondary">Rol: Almacenista</span>
+    {% else %}
+      <span class="navbar-text me-3 text-secondary">Rol: Técnico</span>
+    {% endif %}
+  </div>
+  <form action="{{ url_for('logout') }}" method="get">
+    <button type="submit" class="btn btn-outline-danger btn-sm">Salir</button>
+  </form>
 </nav>
 
-<div class="container vh-100 d-flex justify-content-center align-items-center">
-    <div class="w-100" style="max-width: 800px;">
-        <!-- ALERTAS -->
-        {% with mensajes = get_flashed_messages(with_categories=true) %}
-            {% if mensajes %}
-                {% for categoria, mensaje in mensajes %}
-                    <div class="alert alert-{{ categoria }} alert-dismissible fade show" role="alert">
-                        {{ mensaje }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+<!-- NAV PRINCIPAL -->
+<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #0f6cac;">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="{{ url_for('index') }}">ENERGY SITE, S.A. DE C.V.</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown">
+      <span class="navbar-toggler-icon"></span>
+    </button>
 
-        <!-- FORMULARIO -->
-         <div class="input-group mb-3 bg-white p-4 shadow rounded" id="buscardiv">
-           <h4><label class="form-label">Busca por nombre o codigo interno</label></h4>
-            <div class="input-group mb-3 bg-white p-4 shadow rounded">
-                <span class="input-group-text">🔎</span>
-                <input type="text" placeholder="Nombre o Codigo Interno" name="buscar" id="buscar" class="form-control" required>
-            </div>
-
-            <table class="table table-striped table-hover tabla_bus" id="buscartable">
-                <thead>
-                    <tr>
-                        <th scope="col">ID</th>
-                        <th scope="col">Nombre</th>
-                        <th scope="col">Numero de serie</th>
-                        <th scope="col">Codigo Interno</th>
-                        <th scope="col">Tipo de Herramienta</th>
-                        <th scope="col">Estatus</th>
-                        <th scope="col">Responsable</th>
-                    </tr>
-                </thead>
-                <tbody id="Resultados">
-
-                </tbody>
-            </table>
-
-        </div>
+    <div class="collapse navbar-collapse" id="navbarNavDropdown">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('historial') }}">Historial</a></li>
+        <li class="nav-item"><a class="nav-link active" href="{{ url_for('buscar_herramienta') }}">Buscar</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('inventario') }}">Inventario</a></li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Herramienta</a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="{{ url_for('entra_sale') }}">Entrada/Salida</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('regisherra') }}">Registrar</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('editar_herramienta') }}">Editar</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('eliminar_herramienta') }}">Eliminar</a></li>
+          </ul>
+        </li>
+      </ul>
     </div>
+  </div>
+</nav>
+
+<!-- CONTENIDO -->
+<div class="container my-4">
+  <div class="mx-auto" style="max-width: 900px;">
+
+    {% with mensajes = get_flashed_messages(with_categories=true) %}
+      {% if mensajes %}
+        {% for categoria, mensaje in mensajes %}
+          <div class="alert alert-{{ categoria }} alert-dismissible fade show" role="alert">
+            {{ mensaje }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <div class="bg-white p-4 shadow-sm rounded mb-4">
+      <h4 class="mb-3 text-center">Buscar Herramienta 🔍</h4>
+      <div class="input-group">
+        <span class="input-group-text">🔎</span>
+        <input type="text" placeholder="Nombre o Código Interno" name="buscar" id="buscar" class="form-control" required>
+      </div>
+    </div>
+
+    <div class="table-responsive shadow-sm rounded">
+      <table class="table table-striped table-hover align-middle mb-0" id="buscartable">
+        <thead class="table-primary text-center">
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Serie</th>
+            <th>Código</th>
+            <th>Tipo</th>
+            <th>Estatus</th>
+            <th>Responsable</th>
+          </tr>
+        </thead>
+        <tbody id="Resultados" class="text-center">
+          <tr><td colspan="7" class="text-muted">Escribe para buscar...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>
+
 <script>
 document.getElementById('buscar').addEventListener('input', function () {
-    const query = this.value.trim();
+  const query = this.value.trim();
+  const tabla = document.getElementById('Resultados');
 
-    if (query.length === 0) {
-        document.getElementById('Resultados').innerHTML = '';
+  if (query.length === 0) {
+    tabla.innerHTML = '<tr><td colspan="7" class="text-muted">Escribe para buscar...</td></tr>';
+    return;
+  }
+
+  fetch(`/api/Buscar?q=${encodeURIComponent(query)}`)
+    .then(response => {
+      if (!response.ok) throw new Error("Error en respuesta del servidor");
+      return response.json();
+    })
+    .then(data => {
+      tabla.innerHTML = '';
+      if (data.length === 0) {
+        tabla.innerHTML = '<tr><td colspan="7">Sin resultados</td></tr>';
         return;
-    }
-
-    fetch(`/api/Buscar?q=${encodeURIComponent(query)}`)
-        .then(response => {
-            if (!response.ok) throw new Error("Error en respuesta del servidor");
-            return response.json();
-        })
-        .then(data => {
-            const tabla = document.getElementById('Resultados');
-            tabla.innerHTML = '';
-
-            if (data.length === 0) {
-                tabla.innerHTML = '<tr><td colspan="7">Sin resultados</td></tr>';
-                return;
-            }
-
-            data.forEach(h => {
-                tabla.innerHTML += `
-                    <tr>
-                        <td>${h.id}</td>
-                        <td>${h.name}</td>
-                        <td>${h.serial_number}</td>
-                        <td>${h.internal_code}</td>
-                        <td>${h.tool_type}</td>
-                        <td>${h.status}</td>
-                        <td>${h.responsible}</td>
-                    </tr>
-                `;
-            });
-        })
-        .catch(error => {
-            console.error('Error en fetch:', error);
-        });
+      }
+      data.forEach(h => {
+        tabla.innerHTML += `
+          <tr>
+            <td>${h.id}</td>
+            <td>${h.name}</td>
+            <td>${h.serial_number}</td>
+            <td>${h.internal_code}</td>
+            <td>${h.tool_type}</td>
+            <td>${h.status}</td>
+            <td>${h.responsible}</td>
+          </tr>
+        `;
+      });
+    })
+    .catch(error => {
+      console.error('Error en fetch:', error);
+    });
 });
 </script>
-
-
-    
 {% endblock %}

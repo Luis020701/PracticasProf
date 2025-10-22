@@ -1,0 +1,66 @@
+{% extends './Base.html' %}
+{% block title %}Historial{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/styleInventario.css', _external=True) }}">
+{%endblock%}
+{% block body %}
+
+<!-- NAVBAR PRINCIPAL -->
+<nav class="navbar navbar-light">
+    <div class="container-fluid d-flex align-items-center">
+        <img src="{{ url_for('static', filename='img/LogoTITEmpresarial.png',_external=True) }}" class="logo d-inline-block align-text-top" alt="Logo">
+        <a class="titulo navbar-brand position-absolute top-50 start-50 translate-middle text-white fw-bold">ENERGY SITE, S.A. DE C.V.</a>
+    </div>
+</nav>
+
+<nav class="navbar navbar-light mx-auto navbar-historial">
+    <div class="container-fluid d-flex align-items-center">
+        <a class="titulo navbar-brand position-absolute top-50 start-50 translate-middle text-white fw-bold">INVENTARIO DE HERRAMIENTAS</a>
+    </div>
+</nav>
+
+<!-- Tabla -->
+<div class="table-container mb-4">
+    {% if datos %}
+    <table class="table table-striped table-hover tabla_bus" id="buscartable">
+        <thead>
+            <tr>
+                <th>Nombre de herramienta</th>
+                <th>Marca</th>
+                <th>Modelo</th>
+                <th>Numero de serie</th>
+                <th>Codigo Interno</th>
+                <th>tipo de herramienta</th>
+                <th>Estatus</th>
+                <th>Localización</th>
+                <th>Responsable</th>
+                <th>Precio</th>
+                <th>Fecha de Registro</th>
+                <th>Observaciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for fila in datos %}
+            <tr>
+                <td>{{ fila.name }}</td>
+                <td>{{ fila.brand }}</td>
+                <td>{{ fila.model }}</td>
+                <td>{{ fila.serial_number }}</td>
+                <td>{{ fila.internal_code }}</td>
+                <td>{{ fila.tool_type }}</td>
+                <td>{{fila.status}}</td>
+                <td>{{fila.location}}</td>
+                <td>{{fila.responsible}}</td>
+                <td>${{fila.price}}</td>
+                <td>{{fila.created_at}}</td>
+                <td>{{fila.observations}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="alert alert-info">No se encontraron registros.</div>
+    {% endif %}
+</div>
+
+{% endblock %}
