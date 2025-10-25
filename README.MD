@@ -87,7 +87,7 @@ python  .\src\index.py
 El comando anterior se ejecuta con el entorno previamente activado, sabremos que esta activado checando la ruta de la carpeta en la terminal:
 ![Activacion](https://i.postimg.cc/vZmnL87J/Activar.png)
 
-Al inicio de la ruta comos saldra el nombre del entorno
+Al inicio de la ruta saldra el nombre del entorno
 
 17. Al ejecutar el comando anterior nos dara la direccion en la cual podremos visualizar el Inventario
 
