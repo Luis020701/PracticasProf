@@ -69,6 +69,7 @@ pip install weasyprint
 13. Escogemos la ruta de instalacion(**Nota:** Si tenemos mas de un disco procuraremos escoger en el que instalamos python)
 ![Ruta](https://i.postimg.cc/ZY16mhSz/2GTK.png)
 14. Una vez finalizado nos saldra algo asi que nos indica que todo se instalo correctamente (Dejamos pulsado *RUN MSYS2 now*):
+
 ![Finish](https://i.postimg.cc/Zq25N4jv/install-3-finish.png)
 
 15. Se abrira la consola de comandos
