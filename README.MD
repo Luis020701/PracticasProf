@@ -21,6 +21,7 @@ Lenguajes y Bibliotecas utilizadas
 3. Nos posicionamos dentro de la carpeta
 ![Extraer](https://i.postimg.cc/QdTk2xPp/Carpeta.png)
 
+
 4. Damos clic derecho y **Abrir en Terminal**
 ![MenuContextual](https://i.postimg.cc/ZqDfmDjt/Terminal.png)
 
