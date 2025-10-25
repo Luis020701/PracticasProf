@@ -2,6 +2,7 @@
 <p>
 Lenguajes y Bibliotecas utilizadas
 </p>
+
 - Python 3.13.9
 - Flask 3.1.1
 - Werkzeug 3.1.3
