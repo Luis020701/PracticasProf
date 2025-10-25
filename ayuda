@@ -1,7 +1,0 @@
-INSERT INTO tools (
-    name, brand, model, serial_number, internal_code, tool_type, status, 
-    location, responsible, price, created_at, observations) 
-    VALUES (
-    'Taladro Inalámbrico', 'Bosch', 'GSR12V', 'SN123456', 'INT-001', 'Herramienta Eléctrica',
-    'operativa', 'Almacén Central', 'Juan Pérez', 1500.00, NOW(), 'En buen estado, sin detalles'
-);
