@@ -18,7 +18,7 @@ Lenguajes y Bibliotecas utilizadas
 2. Extraemos el Archivo y nos dejara una carpeta
 ![Extraer](https://i.postimg.cc/jjfJ6GTn/extraer-1.gif)
 
-3. Nos pocisionamos dentro de la carpeta
+3. Nos posicionamos dentro de la carpeta
 ![Extraer](https://i.postimg.cc/QdTk2xPp/Carpeta.png)
 
 4. Damos clic derecho y **Abrir en Terminal**
