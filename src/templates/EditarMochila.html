@@ -1,6 +1,6 @@
 {% extends './Base.html' %}
 {% block title %}
-Edición de Herramienta
+Edición de Kit/Mochila
 {% endblock %}
 
 {% block body %}
@@ -73,14 +73,14 @@ Edición de Herramienta
       {% endif %}
     {% endwith %}
 
-<form action="/editar_herramienta" method="GET"
+<form action="/editar_KM" method="GET"
       id="formBuscar"
       class="bg-white p-4 shadow rounded mb-4">
 
-  <h4 class="mb-3">Ingresa el Código Interno para empezar a editar</h4>
+  <h4 class="mb-3">Ingresa el codigo para empezar a editar</h4>
 
-  <input type="text" name="codigoinh"
-         placeholder="Código Interno"
+  <input type="text" name="codigo_KM"
+         placeholder="codigo Kit/Mochila"
          class="form-control mb-3" required>
 
   <button type="submit"
@@ -100,64 +100,35 @@ document.getElementById("formBuscar")?.addEventListener("submit", function () {
 </script>
 
 
-    <form action="/editar_herramienta" method="POST" class="bg-white p-4 shadow-sm rounded">
-      <h4 class="mb-3 text-center">Editar Herramienta</h4>
+    <form action="/editar_KM" method="POST" class="bg-white p-4 shadow-sm rounded">
+      <h4 class="mb-3 text-center">Editar Kit/Mochila</h4>
 
       <div class="row g-3">
         <div class="col-md-4">
           <label class="form-label">Nombre</label>
-          <input type="text" name="nombreh" value="{{ datos['name'] }}" class="form-control">
+          <input type="text" name="nombre_KM" value="{{ datos['nombre'] }}" class="form-control">
         </div>
         <div class="col-md-4">
-          <label class="form-label">Tipo</label>
-          <input type="text" name="tipoh" value="{{ datos['tool_type'] }}" class="form-control">
+          <label class="form-label">Codigo interno</label>
+          <input type="text" name="codigo_KM" value="{{ datos['internal_code'] }}" class="form-control" readonly>
         </div>
         <div class="col-md-4">
-          <label class="form-label">Marca</label>
-          <input type="text" name="brandh" value="{{ datos['brand'] }}" class="form-control">
-        </div>
-
-        <div class="col-md-4">
-          <label class="form-label">Modelo</label>
-          <input type="text" name="modeloh" value="{{ datos['model'] }}" class="form-control">
-        </div>
-        <div class="col-md-4">
-          <label class="form-label">Serie</label>
-          <input type="text" name="serieh" value="{{ datos['serial_number'] }}" class="form-control">
-        </div>
-        <div class="col-md-4">
-          <label class="form-label">Código Interno</label>
-          <input type="text" name="codigoinh" value="{{ datos['internal_code'] }}" class="form-control" required>
+          <label class="form-label">Responsable</label>
+          <input type="text" name="Respos_KM" value="{{ datos['responsable'] }}" class="form-control">
         </div>
 
         <div class="col-md-6">
           <label class="form-label">Estatus</label>
-          <select name="statush" class="form-select">
-            <option value="operativa" {% if datos['status']=='operativa' %}selected{% endif %}>Operativa</option>
-            <option value="en_reparacion" {% if datos['status']=='en_reparacion' %}selected{% endif %}>En Reparación</option>
-            <option value="extraviada" {% if datos['status']=='extraviada' %}selected{% endif %}>Extraviada</option>
-            <option value="obsoleta" {% if datos['status']=='obsoleta' %}selected{% endif %}>Obsoleta</option>
+          <select name="status_KM" class="form-select">
+            <option value="disponible" {% if datos['estado']=='disponible' %}selected{% endif %}>disponible</option>
+            <option value="prestada" {% if datos['estado']=='prestada' %}selected{% endif %}>prestada</option>
+            <option value="parcial" {% if datos['estado']=='parcial' %}selected{% endif %}>parcial</option>
           </select>
         </div>
 
-        <div class="col-md-6">
-          <label class="form-label">Ubicación</label>
-          <input type="text" name="localidadh" value="{{ datos['location'] }}" class="form-control">
-        </div>
-
-        <div class="col-md-6">
-          <label class="form-label">Responsable</label>
-          <input type="text" name="responsableh" value="{{ datos['responsible'] }}" class="form-control">
-        </div>
-
-        <div class="col-md-6">
-          <label class="form-label">Precio</label>
-          <input type="number" name="precioh" min="0" step="0.01" value="{{ datos['price'] }}" class="form-control">
-        </div>
-
         <div class="col-12">
-          <label class="form-label">Observaciones</label>
-          <textarea name="observacionesh" class="form-control" rows="2">{{ datos['observations'] }}</textarea>
+          <label class="form-label">Descripcion</label>
+          <textarea name="Descripcion_KM" class="form-control" rows="2">{{ datos['descripcion'] }}</textarea>
         </div>
 
         <div class="col-12">

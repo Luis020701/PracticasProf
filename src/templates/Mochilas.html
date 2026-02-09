@@ -1,6 +1,6 @@
 {% extends './Base.html' %}
 {% block title %}
-Edición de Herramienta
+Registro de Kit/Mochila
 {% endblock %}
 
 {% block body %}
@@ -73,96 +73,41 @@ Edición de Herramienta
       {% endif %}
     {% endwith %}
 
-<form action="/editar_herramienta" method="GET"
-      id="formBuscar"
-      class="bg-white p-4 shadow rounded mb-4">
+    <form action="/regis_kit" method="POST" class="bg-white p-4 shadow-sm rounded">
+      <h4 class="mb-3 text-center">Registro de kits/Mochilas</h4>
 
-  <h4 class="mb-3">Ingresa el Código Interno para empezar a editar</h4>
-
-  <input type="text" name="codigoinh"
-         placeholder="Código Interno"
-         class="form-control mb-3" required>
-
-  <button type="submit"
-          class="btn btn-primary w-100"
-          id="buscarBtn">
-    <span id="buscarText">Cargar Datos</span>
-    <span id="buscarSpinner"
-          class="spinner-border spinner-border-sm d-none ms-2"></span>
-  </button>
-</form>
-<script>
-document.getElementById("formBuscar")?.addEventListener("submit", function () {
-  document.getElementById("buscarSpinner").classList.remove("d-none");
-  document.getElementById("buscarBtn").disabled = true;
-  document.getElementById("buscarText").textContent = "Cargando...";
-});
-</script>
-
-
-    <form action="/editar_herramienta" method="POST" class="bg-white p-4 shadow-sm rounded">
-      <h4 class="mb-3 text-center">Editar Herramienta</h4>
-
+      <!-- Agrupa inputs verticalmente en pantallas pequeñas -->
       <div class="row g-3">
-        <div class="col-md-4">
+        <div class="col-md-6">
           <label class="form-label">Nombre</label>
-          <input type="text" name="nombreh" value="{{ datos['name'] }}" class="form-control">
+          <input type="text" name="nombre_kit" placeholder="Dale un nombre a tu Kit/Mochila" class="form-control">
         </div>
-        <div class="col-md-4">
-          <label class="form-label">Tipo</label>
-          <input type="text" name="tipoh" value="{{ datos['tool_type'] }}" class="form-control">
+        <div class="col-md-6">
+          <label class="form-label">Codigo Interno</label>
+          <input type="text" name="codigo_kit" placeholder="Dale un codigo a tu Kit/Mochila" class="form-control">
         </div>
-        <div class="col-md-4">
-          <label class="form-label">Marca</label>
-          <input type="text" name="brandh" value="{{ datos['brand'] }}" class="form-control">
-        </div>
-
-        <div class="col-md-4">
-          <label class="form-label">Modelo</label>
-          <input type="text" name="modeloh" value="{{ datos['model'] }}" class="form-control">
-        </div>
-        <div class="col-md-4">
-          <label class="form-label">Serie</label>
-          <input type="text" name="serieh" value="{{ datos['serial_number'] }}" class="form-control">
-        </div>
-        <div class="col-md-4">
-          <label class="form-label">Código Interno</label>
-          <input type="text" name="codigoinh" value="{{ datos['internal_code'] }}" class="form-control" required>
+        <div class="col-md-6">
+          <label class="form-label">Responsable</label>
+          <input type="text" name="respos_kit" placeholder="¿Quien se hace cargo?" class="form-control">
         </div>
 
         <div class="col-md-6">
           <label class="form-label">Estatus</label>
-          <select name="statush" class="form-select">
-            <option value="operativa" {% if datos['status']=='operativa' %}selected{% endif %}>Operativa</option>
-            <option value="en_reparacion" {% if datos['status']=='en_reparacion' %}selected{% endif %}>En Reparación</option>
-            <option value="extraviada" {% if datos['status']=='extraviada' %}selected{% endif %}>Extraviada</option>
-            <option value="obsoleta" {% if datos['status']=='obsoleta' %}selected{% endif %}>Obsoleta</option>
+          <select name="status_kit" class="form-select">
+            <option value="disponible">Disponible</option>
+            <option value="prestada">Prestada</option>
+            <option value="parcial">Parcial</option>
           </select>
         </div>
 
-        <div class="col-md-6">
-          <label class="form-label">Ubicación</label>
-          <input type="text" name="localidadh" value="{{ datos['location'] }}" class="form-control">
-        </div>
-
-        <div class="col-md-6">
-          <label class="form-label">Responsable</label>
-          <input type="text" name="responsableh" value="{{ datos['responsible'] }}" class="form-control">
-        </div>
-
-        <div class="col-md-6">
-          <label class="form-label">Precio</label>
-          <input type="number" name="precioh" min="0" step="0.01" value="{{ datos['price'] }}" class="form-control">
+        <div class="col-12">
+          <label class="form-label">Descripcion</label>
+          <textarea name="descripcion_kit" class="form-control" rows="2" placeholder="Escribe una breve descripcion..."></textarea>
         </div>
 
         <div class="col-12">
-          <label class="form-label">Observaciones</label>
-          <textarea name="observacionesh" class="form-control" rows="2">{{ datos['observations'] }}</textarea>
-        </div>
-
-        <div class="col-12">
-          <button type="submit" class="btn btn-primary w-100 d-flex align-items-center justify-content-center" id="ediBtn">
-            <span id="btnText">Guardar Cambios</span>
+          <button type="submit" class="btn btn-primary w-100 d-flex align-items-center justify-content-center" id="regisBtn">
+            <span id="btnText">Crear Kit/Mochila</span>
             <div id="inlineSpinner" class="spinner-border text-light spinner-border-sm ms-2 d-none" role="status">
               <span class="visually-hidden">Loading...</span>
             </div>
@@ -177,7 +122,7 @@ document.getElementById("formBuscar")?.addEventListener("submit", function () {
 document.addEventListener("DOMContentLoaded", function () {
   const form = document.querySelector("form");
   const spinner = document.getElementById("inlineSpinner");
-  const btn = document.getElementById("ediBtn");
+  const btn = document.getElementById("regisBtn");
   const btnText = document.getElementById("btnText");
   form.addEventListener("submit", function () {
     spinner.classList.remove("d-none");

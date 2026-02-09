@@ -19,10 +19,22 @@ from Controlador.Movimientos import Movimientos
 from Controlador.Historial import Historial
 from Controlador.ValidarLogin import ValidarLogin
 from Controlador.Inventario import Inventario
-
+from Controlador.AltaMochilas import AltaMochilas
 Inv = Flask(__name__)
 Inv.secret_key ="cookies_1_2.3.4_5_6"
 
+#=============================
+#ROLES DEL SISTEMA
+#=============================
+ROLES = {
+    "Administrador":1,
+    "Almacen":2,
+    "tecnico":3
+}
+#=============================
+#=============================
+#DECORADORES PARA VALIDAR USUARIOS LOGUEADOS Y ROLES
+#===================================================
 def login_required(f):
     """me permite validar el atributo User para validar el inicio de sesion"""
     @wraps(f)
@@ -42,6 +54,27 @@ def index():
         return redirect(url_for('login'))
     else:
         return render_template('index.html')
+    
+def role_required(*roles):
+    """Valida que el usuario tenga uno de los roles permitidos"""
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if "User" not in session:
+                flash("Debes iniciar sesión", "danger")
+                return redirect(url_for("login"))
+
+            if session.get("rol") not in roles:
+                flash("No tienes permisos para acceder a esta sección", "danger")
+                return redirect(url_for("index"))
+
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+#========================================================================================
+#========================================================================================
+#RUTAS DE LA APLICACION
+
 @Inv.route('/login', methods=['GET', 'POST'])
 def login():
     """La funcion sirve para validar el Login"""
@@ -88,6 +121,7 @@ def login():
         return render_template('auth/Login.html')
 @Inv.route('/regisherra', methods=['GET', 'POST'])
 @login_required
+@role_required(ROLES['Administrador'], ROLES['Almacen'])
 def regisherra():
     """Metodo que registra las herramientas en BD"""
     if request.method == 'POST':
@@ -124,9 +158,37 @@ def regisherra():
             return render_template("RegistrarHerramienta.html", modo='Crear')
     else:
         #Si no es get renderizo la pagina de registro
-        return render_template("RegistrarHerramienta.html", modo='Crear')
+        return render_template("RegistrarHerramienta.html", modo='Crear')  
+@Inv.route('/regis_kit', methods=['GET', 'POST'])
+@login_required
+def regis_kit():
+    """
+    Esta funcion permite la creacion de mochilas o kits de herramientas
+    """
+    if request.method == 'POST':
+        estados_disponibles= ('disponible', 'prestada', 'parcial')
+        nombre_kit = request.form.get('nombre_kit','').strip()
+        respos_kit = request.form.get('respos_kit','').strip()
+        status_kit = request.form.get('status_kit','').strip()
+        descripcion_kit = request.form.get('descripcion_kit','').strip()
+        codigoi = request.form.get('codigo_kit','').strip()
+        
+        if status_kit not in estados_disponibles:
+            flash('Error, El status no es correcto','error')
+            return render_template("Mochilas.html")
+        alta_m = AltaMochilas()
+        ok, resultado = alta_m.registro_kit(nombre_kit,respos_kit,status_kit,descripcion_kit,codigoi)
+        if not ok:
+            flash(resultado,'error')
+            return render_template("Mochilas.html")
+        else:
+            flash(resultado,'success')
+            return render_template("Mochilas.html")
+    else:
+        return render_template("Mochilas.html")
 @Inv.route('/eliminar_herramienta', methods=['GET', 'POST'])
 @login_required
+@role_required(ROLES['Administrador'], ROLES['Almacen'])
 def eliminar_herramienta():
     """Este metodo Funciona para Eliminar una herramienta de el inventario"""
     if request.method=='POST':
@@ -143,6 +205,7 @@ def eliminar_herramienta():
         return render_template('EliminarHerramienta.html')
 @Inv.route('/editar_herramienta', methods=['GET', 'POST'])
 @login_required
+@role_required(ROLES['Administrador'], ROLES['Almacen'])
 def editar_herramienta():
     """Funcion para editar los datos de la herramienta"""
     if request.method == 'POST':
@@ -188,13 +251,48 @@ def editar_herramienta():
             flash('Herramienta Encontrada!','info')
             #Renderizo la pagina y envio los datos actuales
             return render_template('EditarHerramienta.html', datos=valor)
+
+@Inv.route('/editar_KM', methods=['GET', 'POST'])
+@login_required
+def editar_KM():
+    if request.method == 'POST':
+        nombre_KM = request.form.get('nombre_KM','').strip()
+        Respos_KM = request.form.get('Respos_KM','').strip()
+        status_KM = request.form.get('status_KM','').strip()
+        Descripcion_KM = request.form.get('Descripcion_KM','').strip()
+        codigoi = request.form.get('codigo_KM','').strip()
+        edi_KM= AltaMochilas()
+        print(codigoi)
+        ok , resultado = edi_KM.editar_KM(nombre_KM,Respos_KM,status_KM,Descripcion_KM,codigoi)
+        if not ok:
+            flash(resultado,'error')
+            return render_template('EditarMochila.html', datos=None)
+        else:
+            flash(resultado,'success')
+            return render_template('EditarMochila.html', datos=None)
+    else: 
+        codigoi = request.args.get('codigo_KM','').strip()
+        if codigoi == '':
+            return render_template('EditarMochila.html', datos=None)
+        else:
+            edi_KM = AltaMochilas()
+            ok, valor= edi_KM.cargar_KM(codigoi)
+            if not ok:
+                flash(valor,'danger')
+                return render_template('EditarMochila.html', datos=None)
+            else:
+                return render_template('EditarMochila.html', datos=valor)
+            
+            
 @Inv.route('/buscar_herramienta', methods=['GET', 'POST'])
 @login_required
+@role_required(ROLES['Administrador'], ROLES['Almacen'])
 def buscar_herramienta():
     """funcion que meramente sirve para renderizar la pagina del buscador"""
     return render_template('BuscadorHerramienta.html')
 @Inv.route('/api/Buscar')
 @login_required
+@role_required(ROLES['Administrador'], ROLES['Almacen'])
 def api_buscar():
     """Esta Funcion me permite ejecutar la busqueda parcial 
     por medio de los argumentos que obtiene constantemente"""
@@ -208,6 +306,7 @@ def api_buscar():
         return jsonify(valor)
 @Inv.route('/entra_sale', methods=['GET', 'POST'])
 @login_required
+@role_required(ROLES['Administrador'], ROLES['Almacen'])
 def entra_sale():
     """Esta funcion detecte el tipo de movimiento que se quiere realizar"""
     if request.method == 'POST':
@@ -271,6 +370,7 @@ def entra_sale():
     return render_template('EntradaSalida.html')
 @Inv.route('/historial', methods=['GET','POST'])
 @login_required
+@role_required(ROLES['Administrador'], ROLES['Almacen'])
 def historial():
     """este metodo me permite obtener el historial y compartirlo a la vista html"""
     filtros = {  # inicializamos siempre
@@ -319,6 +419,7 @@ def historial():
         return render_template('Historial.html', filtros=filtros)
 @Inv.route('/reporte', methods=['GET','POST'])
 @login_required
+@role_required(ROLES['Administrador'], ROLES['Almacen'])
 def reporte():
     nombrer = request.form.get('nombreR','').strip()
     herra = request.form.get('herra','').strip()
@@ -372,6 +473,7 @@ def reporte():
         return response
 @Inv.route('/inventario', methods=['GET','POST'])
 @login_required
+@role_required(ROLES['Administrador'], ROLES['Almacen'])
 def inventario():
     if request.method == 'POST':
         inventar = Inventario()
