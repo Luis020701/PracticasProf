@@ -1,6 +1,6 @@
 {% extends './Base.html' %}
 {% block title %}
-Registro de Kit/Mochila
+Llenar Mochila/Kit
 {% endblock %}
 
 {% block body %}
@@ -30,7 +30,6 @@ Registro de Kit/Mochila
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown">
       <span class="navbar-toggler-icon"></span>
     </button>
-
     <div class="collapse navbar-collapse" id="navbarNavDropdown">
       <ul class="navbar-nav ms-auto">
         <li class="nav-item"><a class="nav-link" href="{{ url_for('historial') }}">Historial</a></li>
@@ -61,7 +60,7 @@ Registro de Kit/Mochila
 
 <!-- FORMULARIO -->
 <div class="container my-4">
-  <div class="mx-auto" style="max-width: 800px;">
+  <div class="mx-auto" style="max-width: 900px;">
     {% with mensajes = get_flashed_messages(with_categories=true) %}
       {% if mensajes %}
         {% for categoria, mensaje in mensajes %}
@@ -73,62 +72,64 @@ Registro de Kit/Mochila
       {% endif %}
     {% endwith %}
 
-    <form action="/regis_kit" method="POST" class="bg-white p-4 shadow-sm rounded">
-      <h4 class="mb-3 text-center">Registro de kits/Mochilas</h4>
+    <form action="/llenarMochila" method="POST" class="bg-white p-4 shadow-sm rounded">
+      <h4 class="mb-3 text-center">Añade o Elimina Herramientas de mochilas</h4>
 
-      <!-- Agrupa inputs verticalmente en pantallas pequeñas -->
-      <div class="row g-3">
-        <div class="col-md-6">
-          <label class="form-label">Nombre</label>
-          <input type="text" name="nombre_kit" placeholder="Dale un nombre a tu Kit/Mochila" class="form-control">
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Codigo Interno</label>
-          <input type="text" name="codigo_kit" placeholder="Dale un codigo a tu Kit/Mochila" class="form-control">
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Responsable</label>
-          <input type="text" name="respos_kit" placeholder="¿Quien se hace cargo?" class="form-control">
-        </div>
-
-        <div class="col-md-6">
-          <label class="form-label">Estatus</label>
-          <select name="status_kit" class="form-select">
-            <option value="disponible">Disponible</option>
-            <option value="prestada">Prestada</option>
-            <option value="parcial">Parcial</option>
-          </select>
-        </div>
-
-        <div class="col-12">
-          <label class="form-label">Descripcion</label>
-          <textarea name="descripcion_kit" class="form-control" rows="2" placeholder="Escribe una breve descripcion..."></textarea>
-        </div>
-
-        <div class="col-12">
-          <button type="submit" class="btn btn-primary w-100 d-flex align-items-center justify-content-center" id="regisBtn">
-            <span id="btnText">Crear Kit/Mochila</span>
-            <div id="inlineSpinner" class="spinner-border text-light spinner-border-sm ms-2 d-none" role="status">
-              <span class="visually-hidden">Loading...</span>
-            </div>
-          </button>
-        </div>
+      <div class="alert alert-info" role="alert">
+        <strong>Recordatorio:</strong> Si solo creas tu Kit/mochila esta estará vacia 🔎
       </div>
+
+      <div class="row g-3 mb-3">
+        <div class="col-md-6">
+          <label class="form-label">Quien registra la acción</label>
+          <input type="text" name="nombreR" class="form-control bg-light" value="{{ session['nombre'] }}" readonly>
+        </div>
+
+
+      <div id="accionesContainer">
+
+  <div class="accion-block row g-3 mb-3">
+
+    <div class="col-md-3">
+      <label class="form-label">Mochila a la cual agregaras la herramienta</label>
+      <input type="text" name="codigoKM[]" class="form-control" placeholder="Código de la mochila" required>
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label">Código Herramienta</label>
+      <input type="text" name="codigoHERRA[]" class="form-control">
+    </div>
+
+    <div class="col-md-3">
+      <label class="form-label">Elige la accion</label>
+      <select name="accion[]" class="form-control">
+        <option value="1">Entrada</option>
+        <option value="0">Salida</option>
+      </select>
+    </div>
+
+  </div>
+
+</div>
+
+      <button type="button" class="btn btn-secondary mb-3" onclick="agregarAccion()">+ Añadir o eliminar otra herramienta a la mochila</button>
+      <button type="submit" class="btn btn-primary w-100">Registrar Acciones</button>
     </form>
   </div>
 </div>
 
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-  const form = document.querySelector("form");
-  const spinner = document.getElementById("inlineSpinner");
-  const btn = document.getElementById("regisBtn");
-  const btnText = document.getElementById("btnText");
-  form.addEventListener("submit", function () {
-    spinner.classList.remove("d-none");
-    btn.disabled = true;
-    btnText.textContent = "Cargando...";
-  });
-});
+function agregarAccion() {
+
+  const container = document.getElementById("accionesContainer");
+
+  const nuevo = container.firstElementChild.cloneNode(true);
+
+  nuevo.querySelectorAll("input").forEach(el => el.value = "");
+  nuevo.querySelectorAll("select").forEach(el => el.selectedIndex = 0);
+
+  container.appendChild(nuevo);
+
+}
 </script>
 {% endblock %}

@@ -20,6 +20,7 @@ from Controlador.Historial import Historial
 from Controlador.ValidarLogin import ValidarLogin
 from Controlador.Inventario import Inventario
 from Controlador.AltaMochilas import AltaMochilas
+from Controlador.MovimientosMochilas import MovimientosMochilas
 Inv = Flask(__name__)
 Inv.secret_key ="cookies_1_2.3.4_5_6"
 
@@ -202,7 +203,25 @@ def eliminar_herramienta():
             flash('Eliminado con exito','info')
             return render_template('EliminarHerramienta.html')
     else:
-        return render_template('EliminarHerramienta.html')
+        return render_template('EliminarHerramienta.html') 
+@Inv.route('/eliminar_KM', methods=['GET', 'POST'])
+@login_required
+@role_required(ROLES['Administrador'], ROLES['Almacen'])
+def eliminar_KM():
+    """Este metodo Funciona para Eliminar una mochila o kit de el inventario"""
+    if request.method=='POST':
+        codiin= request.form.get('codigo_KM')
+        print("Codigo Interno de la Mochila/Kit a eliminar:", codiin)
+        elimi = AltaMochilas()
+        ok, valor = elimi.eliminar_KM(codiin)
+        if not ok:
+            flash(valor, 'danger')
+            return render_template('eliminarMochila.html')
+        else:
+            flash('Eliminado con exito','info')
+            return render_template('eliminarMochila.html')
+    else:
+        return render_template('eliminarMochila.html')
 @Inv.route('/editar_herramienta', methods=['GET', 'POST'])
 @login_required
 @role_required(ROLES['Administrador'], ROLES['Almacen'])
@@ -251,19 +270,21 @@ def editar_herramienta():
             flash('Herramienta Encontrada!','info')
             #Renderizo la pagina y envio los datos actuales
             return render_template('EditarHerramienta.html', datos=valor)
-
 @Inv.route('/editar_KM', methods=['GET', 'POST'])
 @login_required
+@role_required(ROLES['Administrador'], ROLES['Almacen'])
 def editar_KM():
+    """Funcion para editar los datos de la mochila o kit"""
     if request.method == 'POST':
         nombre_KM = request.form.get('nombre_KM','').strip()
         Respos_KM = request.form.get('Respos_KM','').strip()
         status_KM = request.form.get('status_KM','').strip()
         Descripcion_KM = request.form.get('Descripcion_KM','').strip()
+        localidad_KM = request.form.get('localidad_KM','').strip()
         codigoi = request.form.get('codigo_KM','').strip()
         edi_KM= AltaMochilas()
         print(codigoi)
-        ok , resultado = edi_KM.editar_KM(nombre_KM,Respos_KM,status_KM,Descripcion_KM,codigoi)
+        ok , resultado = edi_KM.editar_KM(nombre_KM,Respos_KM,status_KM,Descripcion_KM,codigoi,localidad_KM)
         if not ok:
             flash(resultado,'error')
             return render_template('EditarMochila.html', datos=None)
@@ -281,9 +302,7 @@ def editar_KM():
                 flash(valor,'danger')
                 return render_template('EditarMochila.html', datos=None)
             else:
-                return render_template('EditarMochila.html', datos=valor)
-            
-            
+                return render_template('EditarMochila.html', datos=valor)                    
 @Inv.route('/buscar_herramienta', methods=['GET', 'POST'])
 @login_required
 @role_required(ROLES['Administrador'], ROLES['Almacen'])
@@ -312,7 +331,6 @@ def entra_sale():
     if request.method == 'POST':
         nombrea = request.form.get('nombrea', '').strip()
         nombrer = request.form.get('nombreR', '').strip()
-
         localidades = request.form.getlist('locala[]')
         herramientas = request.form.getlist('herra[]')
         acciones = request.form.getlist('acciona[]')
@@ -364,10 +382,49 @@ def entra_sale():
                         flash(f"{cherra}: {mensaje}", 'danger')
                     else:
                         flash(f"{cherra}: {mensaje}", 'success')
+                return render_template('EntradaSalida.html')
+    else:
+        return render_template('EntradaSalida.html')    
+@Inv.route('/llenarMochila', methods=['GET', 'POST'])
+@login_required
+@role_required(ROLES['Administrador'], ROLES['Almacen'])
+def llenarMochila():
 
-        return render_template('EntradaSalida.html')
+    if request.method == 'POST':
 
-    return render_template('EntradaSalida.html')
+        nombre = request.form.get('nombreR', '').strip()
+        codigoKM = request.form.getlist('codigoKM[]')
+        codigoHERRA = request.form.getlist('codigoHERRA[]')
+        accion = request.form.getlist('accion[]')
+
+        moviMochi = MovimientosMochilas()
+
+        for codigoKMs, codigoHERRAs, accions in zip(codigoKM, codigoHERRA, accion):
+
+            codigoKMs = codigoKMs.strip()
+            codigoHERRAs = codigoHERRAs.strip()
+
+            if not codigoHERRAs:
+                continue
+
+            ok, estado_actual = moviMochi.estatusMoviMoch(codigoHERRAs)
+
+            if not ok:
+                estatus_invalidos = ['en_reparacion', 'extraviada', 'obsoleta']
+
+                if estado_actual in estatus_invalidos:
+                    flash(f"El estatus es: {estado_actual}", 'danger')
+                    return render_template('LlenarMochila.html')
+
+            ok, mensaje = moviMochi.moviMoch(nombre, codigoKMs, codigoHERRAs, accions)
+
+            if not ok:
+                flash(f"{codigoHERRAs}: {mensaje}", 'danger')
+                return render_template('LlenarMochila.html')
+
+            flash(f"{codigoHERRAs}: {mensaje}", 'success')
+
+    return render_template('LlenarMochila.html')   
 @Inv.route('/historial', methods=['GET','POST'])
 @login_required
 @role_required(ROLES['Administrador'], ROLES['Almacen'])

@@ -30,19 +30,20 @@ class AltaMochilas:
                 cur.close()
                 Conn.close()
                 
-    def editar_KM(self,nombre,respos,status,descripcion,codigo):
+    def editar_KM(self,nombre,respos,status,descripcion,codigo,localidad):
         db = Conexion()
         ok, Conn = db.conectar()
         if not ok:  
             return False,Conn
         else:
             cur = Conn.cursor()
-            sql = "UPDATE mochilas SET nombre = %s, descripcion = %s, estado = %s, responsable = %s WHERE internal_code = %s AND activo <> 0"
+            sql = "UPDATE mochilas SET nombre = %s, descripcion = %s, estado = %s, responsable = %s, localidad = %s WHERE internal_code = %s AND activo <> 0"
             datos = (
                 nombre,
                 descripcion,
                 status,
                 respos,
+                localidad,
                 codigo
             )
             try:
@@ -76,6 +77,28 @@ class AltaMochilas:
                 else:
                     return True, resultado
             except Error as e:
+                return False, str(e)
+            finally:
+                cur.close()
+                Conn.close()
+    def eliminar_KM(self,codigoi):
+        """Funcion para eliminar la mochila, en este caso solo cambio el estado a inactiva para no perder los datos"""
+        db = Conexion()
+        ok, Conn = db.conectar()
+        if not ok:
+            return False, Conn
+        else:
+            cur = Conn.cursor()
+            sql = "UPDATE mochilas SET activo = 0 WHERE internal_code = %s AND activo <> 0"
+            try:
+                cur.execute(sql,(codigoi,))
+                if cur.rowcount == 0:
+                    Conn.rollback()
+                    return False, "No se encontró la mochila o ya está inactiva"
+                Conn.commit()
+                return True, 'Mochila/Kit Eliminada'
+            except Error as e:
+                Conn.rollback()
                 return False, str(e)
             finally:
                 cur.close()

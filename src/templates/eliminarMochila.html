@@ -1,6 +1,6 @@
 {% extends './Base.html' %}
 {% block title %}
-Registro de Herramienta
+Eliminar Kit/Mochila
 {% endblock %}
 
 {% block body %}
@@ -61,7 +61,7 @@ Registro de Herramienta
 
 <!-- FORMULARIO -->
 <div class="container my-4">
-  <div class="mx-auto" style="max-width: 800px;">
+  <div class="mx-auto" style="max-width: 500px;">
     {% with mensajes = get_flashed_messages(with_categories=true) %}
       {% if mensajes %}
         {% for categoria, mensaje in mensajes %}
@@ -73,90 +73,51 @@ Registro de Herramienta
       {% endif %}
     {% endwith %}
 
-    <form action="/regisherra" method="POST" class="bg-white p-4 shadow-sm rounded">
-      <h4 class="mb-3 text-center">Registrar Herramienta</h4>
+    <form id="formEliminar" action="/eliminar_KM" method="POST" class="bg-white p-4 shadow-sm rounded">
+      <h4 class="mb-3 text-center">Eliminar Kit/Mochila</h4>
 
-      <!-- Agrupa inputs verticalmente en pantallas pequeñas -->
-      <div class="row g-3">
-        <div class="col-md-4">
-          <label class="form-label">Nombre</label>
-          <input type="text" name="nombreh" placeholder="Nombre herramienta" class="form-control">
-        </div>
-        <div class="col-md-4">
-          <label class="form-label">Tipo</label>
-          <input type="text" name="tipoh" placeholder="Tipo" class="form-control">
-        </div>
-        <div class="col-md-4">
-          <label class="form-label">Marca</label>
-          <input type="text" name="brandh" placeholder="Marca" class="form-control">
-        </div>
-
-        <div class="col-md-4">
-          <label class="form-label">Modelo</label>
-          <input type="text" name="modeloh" placeholder="Modelo" class="form-control">
-        </div>
-        <div class="col-md-4">
-          <label class="form-label">Serie</label>
-          <input type="text" name="serieh" placeholder="Número de serie" class="form-control">
-        </div>
-        <div class="col-md-4">
-          <label class="form-label">Código Interno</label>
-          <input type="text" name="codigoinh" placeholder="Código Interno" class="form-control" required>
-        </div>
-
-        <div class="col-md-6">
-          <label class="form-label">Estatus</label>
-          <select name="statush" class="form-select">
-            <option value="operativa">Operativa</option>
-            <option value="en_reparacion">En Reparación</option>
-            <option value="extraviada">Extraviada</option>
-            <option value="obsoleta">Obsoleta</option>
-          </select>
-        </div>
-
-        <div class="col-md-6">
-          <label class="form-label">Ubicación</label>
-          <input type="text" name="localidadh" placeholder="Localidad" class="form-control">
-        </div>
-
-        <div class="col-md-6">
-          <label class="form-label">Responsable</label>
-          <input type="text" name="responsableh" placeholder="Responsable" class="form-control">
-        </div>
-
-        <div class="col-md-6">
-          <label class="form-label">Precio</label>
-          <input type="number" name="precioh" min="0" step="0.01" placeholder="Precio" class="form-control">
-        </div>
-
-        <div class="col-12">
-          <label class="form-label">Observaciones</label>
-          <textarea name="observacionesh" class="form-control" rows="2" placeholder="Escribe observaciones..."></textarea>
-        </div>
-
-        <div class="col-12">
-          <button type="submit" class="btn btn-primary w-100 d-flex align-items-center justify-content-center" id="regisBtn">
-            <span id="btnText">Registrar Herramienta</span>
-            <div id="inlineSpinner" class="spinner-border text-light spinner-border-sm ms-2 d-none" role="status">
-              <span class="visually-hidden">Loading...</span>
-            </div>
-          </button>
-        </div>
+      <div class="mb-3">
+        <label class="form-label">Código Interno</label>
+        <input type="text" name="codigo_KM" id="codigo_KM" class="form-control" placeholder="Escribe el código interno" required>
       </div>
+
+      <button type="button" class="btn btn-danger w-100 d-flex align-items-center justify-content-center" id="EliBtn">
+        <span id="btnText">Eliminar Kit/Mochila</span>
+        <div id="inlineSpinner" class="spinner-border text-light spinner-border-sm ms-2 d-none" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </button>
     </form>
   </div>
 </div>
 
+<!-- SweetAlert y lógica de confirmación -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-  const form = document.querySelector("form");
+  const form = document.getElementById("formEliminar");
+  const btn = document.getElementById("EliBtn");
   const spinner = document.getElementById("inlineSpinner");
-  const btn = document.getElementById("regisBtn");
   const btnText = document.getElementById("btnText");
-  form.addEventListener("submit", function () {
-    spinner.classList.remove("d-none");
-    btn.disabled = true;
-    btnText.textContent = "Cargando...";
+
+  btn.addEventListener("click", function () {
+    Swal.fire({
+      title: '¿Estás seguro?',
+      text: "Esta acción eliminará la herramienta del sistema.",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        spinner.classList.remove("d-none");
+        btn.disabled = true;
+        btnText.textContent = "Cargando...";
+        form.submit();
+      }
+    });
   });
 });
 </script>

@@ -48,10 +48,10 @@ Edición de Kit/Mochila
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Mochila/Kit</a>
           <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="{{ url_for('regis_kit') }}">Entrada/Salida</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('llenarMochila') }}">Entrada/Salida</a></li>
             <li><a class="dropdown-item" href="{{ url_for('regis_kit') }}">Registrar</a></li>
             <li><a class="dropdown-item" href="{{ url_for('editar_KM') }}">Editar</a></li>
-            <li><a class="dropdown-item" href="{{ url_for('regis_kit') }}">Eliminar</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('eliminar_KM') }}">Eliminar</a></li>
           </ul>
         </li>
       </ul>
@@ -111,6 +111,9 @@ document.getElementById("formBuscar")?.addEventListener("submit", function () {
         <div class="col-md-4">
           <label class="form-label">Codigo interno</label>
           <input type="text" name="codigo_KM" value="{{ datos['internal_code'] }}" class="form-control" readonly>
+        </div>
+        <label class="form-label">Localidad</label>
+          <input type="text" name="localidad_KM" value="{{ datos['localidad'] }}" class="form-control">
         </div>
         <div class="col-md-4">
           <label class="form-label">Responsable</label>
