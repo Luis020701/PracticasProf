@@ -15,7 +15,7 @@ Eliminar Kit/Mochila
     {% elif session['rol'] == 2 %}
       <span class="navbar-text me-3 text-secondary">Rol: Almacenista</span>
     {% else %}
-      <span class="navbar-text me-3 text-secondary">Rol: Técnico</span>
+      <span class="navbar-text me-3 text-secondary">Rol: Instalador</span>
     {% endif %}
   </div>
   <form action="{{ url_for('logout') }}" method="get">
@@ -74,15 +74,33 @@ Eliminar Kit/Mochila
     {% endwith %}
 
     <form id="formEliminar" action="/eliminar_KM" method="POST" class="bg-white p-4 shadow-sm rounded">
-      <h4 class="mb-3 text-center">Eliminar Kit/Mochila</h4>
+      <h4 class="mb-3 text-center">🗑️ Eliminar Mochila/Kit</h4>
+
+      <div class="alert alert-danger" role="alert">
+        <strong>⚠️ ¡ADVERTENCIA!</strong>
+        <ul class="mb-0 mt-2">
+          <li>Esta acción NO se puede deshacer</li>
+          <li>Se eliminarán todas las herramientas asociadas a este kit/mochila</li>
+          <li>Verifica que sea el correcto antes de continuar</li>
+        </ul>
+      </div>
+
+      <div class="alert alert-info" role="alert">
+        <strong>ℹ️ Instrucciones:</strong> Ingresa el código interno del kit/mochila que deseas eliminar permanentemente.
+      </div>
 
       <div class="mb-3">
-        <label class="form-label">Código Interno</label>
-        <input type="text" name="codigo_KM" id="codigo_KM" class="form-control" placeholder="Escribe el código interno" required>
+        <label class="form-label"><strong>🔐 Código Interno del Kit/Mochila</strong></label>
+        <input type="text" name="codigo_KM" id="codigo_KM" class="form-control" placeholder="Ej: MOC-001" list="mochilas-list" required>
+        <datalist id="mochilas-list">
+          {% for mochila in autocompletar.mochilas %}
+          <option value="{{ mochila.internal_code }}">{{ mochila.nombre }}</option>
+          {% endfor %}
+        </datalist>
       </div>
 
       <button type="button" class="btn btn-danger w-100 d-flex align-items-center justify-content-center" id="EliBtn">
-        <span id="btnText">Eliminar Kit/Mochila</span>
+        <span id="btnText">🗑️ Eliminar Kit/Mochila (Irreversible)</span>
         <div id="inlineSpinner" class="spinner-border text-light spinner-border-sm ms-2 d-none" role="status">
           <span class="visually-hidden">Loading...</span>
         </div>

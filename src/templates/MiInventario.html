@@ -1,0 +1,107 @@
+{% extends './Base.html' %}
+{% block title %}Mi inventario{% endblock %}
+
+{% block body %}
+<nav class="navbar navbar-light bg-light flex-wrap justify-content-between px-3">
+  <span class="navbar-brand mb-0 h6">Hola, 🙋🏻‍♂️ {{ session['nombre'] }}</span>
+  <span class="navbar-text me-3 text-secondary">Rol: Instalador</span>
+  <form action="{{ url_for('logout') }}" method="get">
+    <button type="submit" class="btn btn-outline-danger btn-sm">Salir</button>
+  </form>
+</nav>
+
+<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #0f6cac;">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="{{ url_for('index') }}">ENERGY SITE, S.A. DE C.V.</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNavDropdown">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link active" href="{{ url_for('mi_inventario') }}">Mi inventario</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('entra_sale') }}">Préstamo herramienta</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('prestamo_mochila') }}">Préstamo mochila</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="container my-4">
+  {% with mensajes = get_flashed_messages(with_categories=true) %}
+    {% if mensajes %}
+      {% for categoria, mensaje in mensajes %}
+        <div class="alert alert-{{ categoria }} alert-dismissible fade show" role="alert">
+          {{ mensaje }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <div class="bg-white p-4 shadow-sm rounded mb-4">
+    <h4 class="mb-3">Herramientas asignadas</h4>
+    {% if inventario.herramientas %}
+      <div class="table-responsive">
+        <table class="table table-striped align-middle">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Herramienta</th>
+              <th>Marca</th>
+              <th>Modelo</th>
+              <th>Ubicación</th>
+              <th>Asignada</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for herramienta in inventario.herramientas %}
+              <tr>
+                <td>{{ herramienta.internal_code }}</td>
+                <td>{{ herramienta.name }}</td>
+                <td>{{ herramienta.brand }}</td>
+                <td>{{ herramienta.model }}</td>
+                <td>{{ herramienta.location }}</td>
+                <td>{{ herramienta.assigned_at }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="alert alert-info mb-0">No tienes herramientas asignadas actualmente.</div>
+    {% endif %}
+  </div>
+
+  <div class="bg-white p-4 shadow-sm rounded">
+    <h4 class="mb-3">Mochilas/Kits asignados</h4>
+    {% if inventario.mochilas %}
+      <div class="table-responsive">
+        <table class="table table-striped align-middle">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Nombre</th>
+              <th>Descripción</th>
+              <th>Estado</th>
+              <th>Ubicación</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for mochila in inventario.mochilas %}
+              <tr>
+                <td>{{ mochila.internal_code }}</td>
+                <td>{{ mochila.nombre }}</td>
+                <td>{{ mochila.descripcion }}</td>
+                <td>{{ mochila.estado }}</td>
+                <td>{{ mochila.localidad }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="alert alert-info mb-0">No tienes mochilas o kits asignados actualmente.</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,54 +1,86 @@
 {% extends './Base.html' %}
-{% block title %}Historial{% endblock %}
+{% block title %}Reporte de Historial{% endblock %}
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/styleTemplate.css', _external=True) }}">
-{%endblock%}
+{% endblock %}
 {% block body %}
 
-<!-- NAVBAR PRINCIPAL -->
-<nav class="navbar navbar-light">
-    <div class="container-fluid d-flex align-items-center">
-        <img src="{{ url_for('static', filename='img/LogoTITEmpresarial.png',_external=True) }}" class="logo d-inline-block align-text-top" alt="Logo">
-        <a class="titulo navbar-brand position-absolute top-50 start-50 translate-middle text-white fw-bold">ENERGY SITE, S.A. DE C.V.</a>
+<div class="container my-4">
+  <header class="mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center bg-primary text-white rounded-3 p-4 shadow-sm gap-3">
+      <div class="d-flex align-items-center gap-3">
+        <img src="{{ url_for('static', filename='img/LogoTITEmpresarial.png', _external=True) }}" alt="Logo ENERGY SITE" class="img-fluid" style="max-height:72px;">
+        <div>
+          <h1 class="h4 mb-1">Reporte de Historial de Herramientas</h1>
+          <p class="mb-0">ENERGY SITE, S.A. DE C.V.</p>
+        </div>
+      </div>
+      <div class="text-end">
+        <span class="d-block small text-white-50">Fecha de generación</span>
+        <strong>{{ fecha_actual or 'N/A' }}</strong>
+      </div>
     </div>
-</nav>
+  </header>
 
-<nav class="navbar navbar-light mx-auto navbar-historial">
-    <div class="container-fluid d-flex align-items-center">
-        <a class="titulo navbar-brand position-absolute top-50 start-50 translate-middle text-white fw-bold">HISTORIAL DE HERRAMIENTAS</a>
-    </div>
-</nav>
-
-<!-- Tabla -->
-<div class="table-container mb-4">
+  <section class="report-summary mb-3 p-3 rounded-3 shadow-sm bg-light">
     {% if datos %}
-    <table class="table table-striped table-hover tabla_bus" id="buscartable">
-        <thead>
-            <tr>
-                <th>Persona Responsable</th>
-                <th>Nombre de herramienta</th>
-                <th>Código Interno de Herramienta</th>
-                <th>Tipo de movimiento</th>
-                <th>Fecha</th>
-                <th>Estatus</th>
-            </tr>
+      <div class="d-flex flex-column flex-md-row justify-content-between gap-2">
+        <div>
+          <p class="mb-1 text-muted small">Total de movimientos encontrados</p>
+          <h2 class="h5 mb-0">{{ datos|length }}</h2>
+        </div>
+        <div class="text-md-end">
+          <p class="mb-1 text-muted small">Orden cronológico</p>
+          <strong class="text-dark">Más reciente primero</strong>
+        </div>
+      </div>
+    {% else %}
+      <p class="text-muted mb-2">No se encontraron registros para el reporte.</p>
+    {% endif %}
+  </section>
+
+  <div class="table-responsive shadow-sm rounded bg-white report-table-wrap">
+    {% if datos %}
+      <table class="table table-bordered table-hover table-sm mb-0 report-table">
+        <thead class="table-secondary text-center align-middle">
+          <tr>
+            <th style="width: 12%;">Persona Responsable</th>
+            <th style="width: 11%;">Herramienta</th>
+            <th style="width: 9%;">Código Interno</th>
+            <th style="width: 10%;">Movimiento</th>
+            <th style="width: 9%;">Tipo Asign.</th>
+            <th style="width: 10%;">Ubicación</th>
+            <th style="width: 17%;">Observaciones</th>
+            <th style="width: 11%;">Fecha / Hora</th>
+            <th style="width: 8%;">Estatus</th>
+          </tr>
         </thead>
         <tbody>
-            {% for fila in datos %}
+          {% for fila in datos %}
             <tr>
-                <td>{{ fila.person }}</td>
-                <td>{{ fila.name }}</td>
-                <td>{{ fila.internal_code }}</td>
-                <td>{{ fila.action }}</td>
-                <td>{{ fila.timestamp }}</td>
-                <td>{{ fila.status }}</td>
+              <td>{{ fila.person }}</td>
+              <td>{{ fila.name }}</td>
+              <td>{{ fila.internal_code }}</td>
+              <td>{{ fila.action|capitalize }}</td>
+              <td>
+                {% if fila.assignment_type == 'permanente' %}
+                  <span class="badge bg-danger">PERMANENTE</span>
+                {% else %}
+                  <span class="badge bg-info">Temporal</span>
+                {% endif %}
+              </td>
+              <td>{{ fila.location or '-' }}</td>
+              <td>{{ fila.observations or '-' }}</td>
+              <td>{{ fila.timestamp }}</td>
+              <td>{{ fila.status }}</td>
             </tr>
-            {% endfor %}
+          {% endfor %}
         </tbody>
-    </table>
+      </table>
     {% else %}
-    <div class="alert alert-info">No se encontraron registros.</div>
+      <div class="alert alert-info mb-0">No se encontraron registros.</div>
     {% endif %}
+  </div>
 </div>
 
 {% endblock %}

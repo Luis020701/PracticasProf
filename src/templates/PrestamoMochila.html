@@ -1,0 +1,92 @@
+{% extends './Base.html' %}
+{% block title %}Préstamo de mochila{% endblock %}
+
+{% block body %}
+<nav class="navbar navbar-light bg-light flex-wrap justify-content-between px-3">
+  <span class="navbar-brand mb-0 h6">Hola, 🙋🏻‍♂️ {{ session['nombre'] }}</span>
+  {% if session['rol'] == 1 %}
+    <span class="navbar-text me-3 text-secondary">Rol: Administrador</span>
+  {% elif session['rol'] == 2 %}
+    <span class="navbar-text me-3 text-secondary">Rol: Almacenista</span>
+  {% else %}
+    <span class="navbar-text me-3 text-secondary">Rol: Instalador</span>
+  {% endif %}
+  <form action="{{ url_for('logout') }}" method="get">
+    <button type="submit" class="btn btn-outline-danger btn-sm">Salir</button>
+  </form>
+</nav>
+
+<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #0f6cac;">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="{{ url_for('index') }}">ENERGY SITE, S.A. DE C.V.</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNavDropdown">
+      <ul class="navbar-nav ms-auto">
+        {% if session['rol'] in [1, 2] %}
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('historial') }}">Historial</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('buscar_herramienta') }}">Buscar</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('inventario') }}">Inventario</a></li>
+        {% else %}
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('mi_inventario') }}">Mi inventario</a></li>
+        {% endif %}
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('entra_sale') }}">Préstamo herramienta</a></li>
+        <li class="nav-item"><a class="nav-link active" href="{{ url_for('prestamo_mochila') }}">Préstamo mochila</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="container my-4">
+  <div class="mx-auto" style="max-width: 760px;">
+    {% with mensajes = get_flashed_messages(with_categories=true) %}
+      {% if mensajes %}
+        {% for categoria, mensaje in mensajes %}
+          <div class="alert alert-{{ categoria }} alert-dismissible fade show" role="alert">
+            {{ mensaje }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form action="{{ url_for('prestamo_mochila') }}" method="POST" class="bg-white p-4 shadow-sm rounded">
+      <h4 class="mb-3 text-center">Registrar préstamo de mochila completa</h4>
+
+      <div class="row g-3 mb-3">
+        <div class="col-md-6">
+          <label class="form-label">Código de la Mochila/Kit</label>
+          <input type="text" name="codigo_mochila" class="form-control" placeholder="Ej: MOC-001" list="mochilas-list" required>
+          <datalist id="mochilas-list">
+            {% for mochila in autocompletar.mochilas %}
+            <option value="{{ mochila.internal_code }}">{{ mochila.nombre }}</option>
+            {% endfor %}
+          </datalist>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Ubicación/Destino</label>
+          <input type="text" name="localidad" class="form-control" placeholder="Ej: Obra, Almacén, Oficina" list="ubicaciones-list" required>
+          <datalist id="ubicaciones-list">
+            {% for ubicacion in autocompletar.ubicaciones %}
+            <option value="{{ ubicacion }}">
+            {% endfor %}
+          </datalist>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Responsable</label>
+        <input type="text" name="responsable" class="form-control {% if session['rol'] == 3 %}bg-light{% endif %}" list="usuarios-list" value="{% if session['rol'] == 3 %}{{ session['nombre'] }}{% endif %}" {% if session['rol'] == 3 %}readonly{% endif %} required>
+        <datalist id="usuarios-list">
+          {% for usuario in autocompletar.responsables %}
+          <option value="{{ usuario }}">
+          {% endfor %}
+        </datalist>
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100">Registrar préstamo</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

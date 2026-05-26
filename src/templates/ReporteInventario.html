@@ -1,66 +1,85 @@
 {% extends './Base.html' %}
-{% block title %}Historial{% endblock %}
+{% block title %}Reporte de Inventario{% endblock %}
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/styleInventario.css', _external=True) }}">
-{%endblock%}
+{% endblock %}
 {% block body %}
 
-<!-- NAVBAR PRINCIPAL -->
-<nav class="navbar navbar-light">
-    <div class="container-fluid d-flex align-items-center">
-        <img src="{{ url_for('static', filename='img/LogoTITEmpresarial.png',_external=True) }}" class="logo d-inline-block align-text-top" alt="Logo">
-        <a class="titulo navbar-brand position-absolute top-50 start-50 translate-middle text-white fw-bold">ENERGY SITE, S.A. DE C.V.</a>
+<div class="container my-4">
+  <header class="mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center bg-primary text-white rounded-3 p-4 shadow-sm gap-3">
+      <div class="d-flex align-items-center gap-3">
+        <img src="{{ url_for('static', filename='img/LogoTITEmpresarial.png', _external=True) }}" alt="Logo ENERGY SITE" class="img-fluid" style="max-height:72px;">
+        <div>
+          <h1 class="h4 mb-1">Reporte de Inventario de Herramientas</h1>
+          <p class="mb-0">ENERGY SITE, S.A. DE C.V.</p>
+        </div>
+      </div>
+      <div class="text-end">
+        <span class="d-block small text-white-50">Fecha de generación</span>
+        <strong>{{ fecha_actual or 'N/A' }}</strong>
+      </div>
     </div>
-</nav>
+  </header>
 
-<nav class="navbar navbar-light mx-auto navbar-historial">
-    <div class="container-fluid d-flex align-items-center">
-        <a class="titulo navbar-brand position-absolute top-50 start-50 translate-middle text-white fw-bold">INVENTARIO DE HERRAMIENTAS</a>
-    </div>
-</nav>
-
-<!-- Tabla -->
-<div class="table-container mb-4">
+  <section class="mb-3">
     {% if datos %}
-    <table class="table table-striped table-hover tabla_bus" id="buscartable">
-        <thead>
-            <tr>
-                <th>Nombre de herramienta</th>
-                <th>Marca</th>
-                <th>Modelo</th>
-                <th>Numero de serie</th>
-                <th>Codigo Interno</th>
-                <th>tipo de herramienta</th>
-                <th>Estatus</th>
-                <th>Localización</th>
-                <th>Responsable</th>
-                <th>Precio</th>
-                <th>Fecha de Registro</th>
-                <th>Observaciones</th>
-            </tr>
+      <p class="text-muted mb-2">Total de herramientas listadas: <strong>{{ datos|length }}</strong></p>
+    {% else %}
+      <p class="text-muted mb-2">No se encontraron registros para el reporte.</p>
+    {% endif %}
+  </section>
+
+  <div class="table-responsive shadow-sm rounded bg-white">
+    {% if datos %}
+      <table class="table table-bordered table-hover table-sm mb-0">
+        <thead class="table-secondary text-center align-middle">
+          <tr>
+            <th>Herramienta</th>
+            <th>Marca</th>
+            <th>Modelo</th>
+            <th>Serie</th>
+            <th>Código Interno</th>
+            <th>Tipo</th>
+            <th>Estatus</th>
+            <th>Ubicación</th>
+            <th>Responsable</th>
+            <th>Asignación</th>
+            <th>Precio</th>
+            <th>Registro</th>
+            <th>Observaciones</th>
+          </tr>
         </thead>
         <tbody>
-            {% for fila in datos %}
+          {% for fila in datos %}
             <tr>
-                <td>{{ fila.name }}</td>
-                <td>{{ fila.brand }}</td>
-                <td>{{ fila.model }}</td>
-                <td>{{ fila.serial_number }}</td>
-                <td>{{ fila.internal_code }}</td>
-                <td>{{ fila.tool_type }}</td>
-                <td>{{fila.status}}</td>
-                <td>{{fila.location}}</td>
-                <td>{{fila.responsible}}</td>
-                <td>${{fila.price}}</td>
-                <td>{{fila.created_at}}</td>
-                <td>{{fila.observations}}</td>
+              <td>{{ fila.name }}</td>
+              <td>{{ fila.brand }}</td>
+              <td>{{ fila.model }}</td>
+              <td>{{ fila.serial_number }}</td>
+              <td>{{ fila.internal_code }}</td>
+              <td>{{ fila.tool_type }}</td>
+              <td>{{ fila.status }}</td>
+              <td>{{ fila.location or '-' }}</td>
+              <td>{{ fila.responsible or '-' }}</td>
+              <td>
+                {% if fila.assignment_status == 'permanente' %}
+                  <span class="badge bg-danger">🔒 Permanente</span>
+                {% else %}
+                  <span class="badge bg-secondary">Temporal</span>
+                {% endif %}
+              </td>
+              <td>${{ fila.price }}</td>
+              <td>{{ fila.created_at }}</td>
+              <td>{{ fila.observations or '-' }}</td>
             </tr>
-            {% endfor %}
+          {% endfor %}
         </tbody>
-    </table>
+      </table>
     {% else %}
-    <div class="alert alert-info">No se encontraron registros.</div>
+      <div class="alert alert-info mb-0">No se encontraron registros.</div>
     {% endif %}
+  </div>
 </div>
 
 {% endblock %}

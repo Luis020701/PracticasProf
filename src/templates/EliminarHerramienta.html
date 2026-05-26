@@ -15,7 +15,7 @@ Eliminar Herramienta
     {% elif session['rol'] == 2 %}
       <span class="navbar-text me-3 text-secondary">Rol: Almacenista</span>
     {% else %}
-      <span class="navbar-text me-3 text-secondary">Rol: Técnico</span>
+      <span class="navbar-text me-3 text-secondary">Rol: Instalador</span>
     {% endif %}
   </div>
   <form action="{{ url_for('logout') }}" method="get">
@@ -74,15 +74,33 @@ Eliminar Herramienta
     {% endwith %}
 
     <form id="formEliminar" action="/eliminar_herramienta" method="POST" class="bg-white p-4 shadow-sm rounded">
-      <h4 class="mb-3 text-center">Eliminar Herramienta</h4>
+      <h4 class="mb-3 text-center">🗑️ Eliminar Herramienta</h4>
+
+      <div class="alert alert-danger" role="alert">
+        <strong>⚠️ ¡ADVERTENCIA!</strong>
+        <ul class="mb-0 mt-2">
+          <li>Esta acción NO se puede deshacer</li>
+          <li>Se eliminarán todos los registros asociados a esta herramienta</li>
+          <li>Verifica que sea la herramienta correcta antes de continuar</li>
+        </ul>
+      </div>
+
+      <div class="alert alert-info" role="alert">
+        <strong>ℹ️ Instrucciones:</strong> Ingresa el código interno de la herramienta que deseas eliminar permanentemente.
+      </div>
 
       <div class="mb-3">
-        <label class="form-label">Código Interno</label>
-        <input type="text" name="codigoinh" id="codigoinh" class="form-control" placeholder="Escribe el código interno" required>
+        <label class="form-label"><strong>🔧 Código Interno de la Herramienta</strong></label>
+        <input type="text" name="codigoinh" id="codigoinh" class="form-control" placeholder="Ej: TOOL-001" list="herramientas-list" required>
+        <datalist id="herramientas-list">
+          {% for herramienta in autocompletar.herramientas %}
+          <option value="{{ herramienta.internal_code }}">{{ herramienta.name }}</option>
+          {% endfor %}
+        </datalist>
       </div>
 
       <button type="button" class="btn btn-danger w-100 d-flex align-items-center justify-content-center" id="EliBtn">
-        <span id="btnText">Eliminar Herramienta</span>
+        <span id="btnText">🗑️ Eliminar Herramienta (Irreversible)</span>
         <div id="inlineSpinner" class="spinner-border text-light spinner-border-sm ms-2 d-none" role="status">
           <span class="visually-hidden">Loading...</span>
         </div>

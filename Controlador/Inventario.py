@@ -11,10 +11,23 @@ class Inventario:
         if not ok:
             return False, Conn
         else:
-            sql="SELECT * FROM tools WHERE status <> 'eliminada'"
+            sql = """
+                SELECT
+                    t.*,
+                    pa.assignment_type AS assignment_status,
+                    pa.responsable_name,
+                    COALESCE(u.full_name, pa.responsable_name) AS permanent_responsable,
+                    u.full_name AS permanent_user,
+                    m.nombre AS permanent_mochila
+                FROM tools t
+                LEFT JOIN permanent_assignments pa ON pa.tool_id = t.id AND pa.active = 1
+                LEFT JOIN user u ON pa.user_id = u.id
+                LEFT JOIN mochilas m ON pa.mochila_id = m.id_mochila
+                WHERE t.status <> 'eliminada'
+            """
             cursor = Conn.cursor(dictionary=True)
-            try:#evaluo si puedo ejecutar la sentencia
-                cursor.execute(sql)#esto lo uso para evitar la inyeccion de codigo
+            try:
+                cursor.execute(sql)
                 resultados = cursor.fetchall()
                 return True, resultados
             except Error as e:

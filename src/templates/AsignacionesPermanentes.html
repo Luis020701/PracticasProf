@@ -1,0 +1,161 @@
+{% extends './Base.html' %}
+{% block title %}Asignaciones Permanentes{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/styleTemplate.css', _external=True) }}">
+<style>
+    .badge-permanent {
+        background-color: #d32f2f;
+        color: white;
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.25rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    .badge-user {
+        background-color: #1976d2;
+    }
+    .badge-mochila {
+        background-color: #388e3c;
+    }
+    .assignment-card {
+        border-left: 4px solid #d32f2f;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        background-color: #f5f5f5;
+        border-radius: 0.25rem;
+    }
+    .assignment-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+</style>
+{% endblock %}
+{% block body %}
+
+<nav class="navbar navbar-light bg-light flex-wrap justify-content-between px-3">
+    <span class="navbar-brand mb-0 h6">Hola, 🙋🏻‍♂️ {{ session['nombre'] }}</span>
+    {% if session['rol'] == 1 %}
+        <span class="navbar-text me-3 text-secondary">Rol: Administrador</span>
+    {% elif session['rol'] == 2 %}
+        <span class="navbar-text me-3 text-secondary">Rol: Almacenista</span>
+    {% else %}
+        <span class="navbar-text me-3 text-secondary">Rol: Instalador</span>
+    {% endif %}
+    <form action="{{ url_for('logout') }}" method="get">
+        <button type="submit" class="btn btn-outline-danger btn-sm">Salir</button>
+    </form>
+</nav>
+
+<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #0f6cac;">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{{ url_for('index') }}">ENERGY SITE, S.A. DE C.V.</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavDropdown">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('historial') }}">Historial</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('buscar_herramienta') }}">Buscador</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('inventario') }}">Inventario</a></li>
+                <li class="nav-item"><a class="nav-link active" href="{{ url_for('asignaciones_permanentes') }}">Asignaciones</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('editar_herramienta') }}">Editar herramienta</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container my-4">
+    <div class="mb-4">
+        <h1 class="mb-3">Asignaciones Permanentes de Herramientas</h1>
+        <p class="text-muted">
+            Herramientas que han sido asignadas permanentemente a usuarios o mochilas.
+            Estas herramientas no pueden cambiar de propietario sin autorización.
+        </p>
+    </div>
+
+    {% if asignaciones %}
+        <div class="alert alert-info">
+            <strong>Total de asignaciones permanentes:</strong> {{ asignaciones|length }}
+        </div>
+
+        <div class="row">
+            {% for asignacion in asignaciones %}
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="assignment-card">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <h5 class="mb-1">{{ asignacion.tool_name }}</h5>
+                                <code class="text-muted">{{ asignacion.internal_code }}</code>
+                            </div>
+                            <span class="badge badge-permanent {% if asignacion.assignment_type == 'user' %}badge-user{% else %}badge-mochila{% endif %}">
+                                {{ asignacion.assignment_type|upper }}
+                            </span>
+                        </div>
+
+                        <div class="mt-3 small">
+                            <p class="mb-1">
+                                <strong>Asignado a:</strong>
+                                {% if asignacion.assignment_type == 'user' %}
+                                    {{ asignacion.user_name or asignacion.responsable_name or 'N/A' }}
+                                {% else %}
+                                    {{ asignacion.mochila_name or asignacion.responsable_name or 'N/A' }}
+                                {% endif %}
+                            </p>
+                            <p class="mb-1">
+                                <strong>Fecha de asignación:</strong>
+                                {{ asignacion.assigned_at|default('N/A') }}
+                            </p>
+                            <p class="mb-0">
+                                <strong>Asignado por:</strong>
+                                {{ asignacion.assigned_by_name or 'N/A' }}
+                            </p>
+                        </div>
+
+                        <div class="assignment-actions">
+                            <a href="{{ url_for('editar_herramienta') }}?codigoinh={{ asignacion.internal_code }}" class="btn btn-sm btn-primary">
+                                Editar
+                            </a>
+                            {% if session['rol'] == 1 %}
+                            <button class="btn btn-sm btn-danger desmarcar-btn" data-codigo="{{ asignacion.internal_code }}">
+                                Desmarcar
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-warning">
+            No hay asignaciones permanentes registradas.
+        </div>
+    {% endif %}
+</div>
+
+<script>
+    document.querySelectorAll('.desmarcar-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const codigo = this.dataset.codigo;
+            if (confirm(`¿Deseas desmarcar la asignación permanente de ${codigo}?`)) {
+                fetch('{{ url_for("desmarcar_permanente") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: 'codigo_herramienta=' + encodeURIComponent(codigo)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    if (data.success) {
+                        location.reload();
+                    }
+                })
+                .catch(error => alert('Error: ' + error));
+            }
+        });
+    });
+</script>
+
+{% endblock %}

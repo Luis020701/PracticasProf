@@ -49,14 +49,42 @@ body {
     margin-bottom: 1rem;
     color: #0f6cac;
     border-collapse: collapse;
+    table-layout: fixed;
 }
 
 .table th,
 .table td {
     font-family: Arial, sans-serif;
-    padding: 0.5rem;
+    padding: 0.65rem 0.75rem;
     border: 1px solid #dee2e6;
     vertical-align: top;
+}
+
+.report-table th,
+.report-table td {
+    word-break: break-word;
+    white-space: normal;
+}
+
+.report-table-wrap {
+    overflow-x: visible;
+}
+
+.report-summary {
+    border: 1px solid #dee2e6;
+}
+
+.report-note {
+    font-size: 0.85rem;
+    color: #5a5a5a;
+}
+
+.table-responsive {
+    overflow-x: auto;
+}
+
+.table tbody tr {
+    page-break-inside: avoid;
 }
 
 .table thead th {

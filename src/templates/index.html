@@ -10,7 +10,7 @@
   {% elif session['rol'] == 2 %}
     <span class="navbar-text me-3 text-secondary">Rol: Almacenista</span>
   {% else %}
-    <span class="navbar-text me-3 text-secondary">Rol: Técnico</span>
+    <span class="navbar-text me-3 text-secondary">Rol: Instalador</span>
   {% endif %}
   <form action="{{ url_for('logout') }}" method="get">
     <button type="submit" class="btn btn-outline-danger btn-sm">Salir</button>
@@ -26,25 +26,35 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarNavDropdown">
       <ul class="navbar-nav ms-auto">
+        {% if session['rol'] in [1, 2] %}
         <li class="nav-item"><a class="nav-link" href="{{ url_for('historial') }}">Historial</a></li>
         <li class="nav-item"><a class="nav-link" href="{{ url_for('buscar_herramienta') }}">Buscador</a></li>
         <li class="nav-item"><a class="nav-link" href="{{ url_for('inventario') }}">Inventario</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('asignaciones_permanentes') }}">Asignaciones</a></li>
+        {% else %}
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('mi_inventario') }}">Mi inventario</a></li>
+        {% endif %}
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Herramienta</a>
           <ul class="dropdown-menu">
             <li><a class="dropdown-item" href="{{ url_for('entra_sale') }}">Entrada/Salida</a></li>
+            {% if session['rol'] in [1, 2] %}
             <li><a class="dropdown-item" href="{{ url_for('regisherra') }}">Registrar</a></li>
             <li><a class="dropdown-item" href="{{ url_for('editar_herramienta') }}">Editar</a></li>
             <li><a class="dropdown-item" href="{{ url_for('eliminar_herramienta') }}">Eliminar</a></li>
+            {% endif %}
           </ul>
         </li>
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Mochila/Kit</a>
           <ul class="dropdown-menu">
+            {% if session['rol'] in [1, 2] %}
             <li><a class="dropdown-item" href="{{ url_for('llenarMochila') }}">Entrada/Salida</a></li>
             <li><a class="dropdown-item" href="{{ url_for('regis_kit') }}">Registrar</a></li>
             <li><a class="dropdown-item" href="{{ url_for('editar_KM') }}">Editar</a></li>
             <li><a class="dropdown-item" href="{{ url_for('eliminar_KM') }}">Eliminar</a></li>
+            {% endif %}
+            <li><a class="dropdown-item" href="{{ url_for('prestamo_mochila') }}">Prestar completa</a></li>
           </ul>
         </li>
         
@@ -58,6 +68,7 @@
   <!--Este div me permite ajustar el responsive de la pagina-->
   <div class="row g-4">
     <!--Este div es que el contiene el card de Historial-->
+    {% if session['rol'] in [1, 2] %}
     <div class="col-md-6">
       <div class="card shadow-sm">
         <div class="card-body text-center">
@@ -67,7 +78,19 @@
         </div>
       </div>
     </div>
+    {% else %}
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-body text-center">
+          <h5 class="card-title">Mi inventario asignado</h5>
+          <p class="card-text">Consulta las herramientas y mochilas que tienes actualmente asignadas.</p>
+          <a href="{{ url_for('mi_inventario') }}" class="btn btn-primary">Ver mi inventario</a>
+        </div>
+      </div>
+    </div>
+    {% endif %}
     <!--Este div es que el contiene el card de Buscador-->
+    {% if session['rol'] in [1, 2] %}
     <div class="col-md-6">
       <div class="card shadow-sm">
         <div class="card-body text-center">
@@ -77,7 +100,9 @@
         </div>
       </div>
     </div>
+    {% endif %}
     <!--Este div es que el contiene el card de Registro-->
+    {% if session['rol'] in [1, 2] %}
     <div class="col-md-6">
       <div class="card shadow-sm">
         <div class="card-body text-center">
@@ -87,7 +112,9 @@
         </div>
       </div>
     </div>
+    {% endif %}
     <!--Este div es que el contiene el card de Edicion-->
+    {% if session['rol'] in [1, 2] %}
     <div class="col-md-6">
       <div class="card shadow-sm">
         <div class="card-body text-center">
@@ -97,13 +124,31 @@
         </div>
       </div>
     </div>
+    {% endif %}
+    {% if session['rol'] in [1, 2] %}
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-body text-center">
+          <h5 class="card-title">Asignaciones permanentes</h5>
+          <p class="card-text">Consulta herramientas asignadas permanentemente y gestiona sus bloqueos.</p>
+          <a href="{{ url_for('asignaciones_permanentes') }}" class="btn btn-primary">Ver asignaciones</a>
+        </div>
+      </div>
+    </div>
+    {% endif %}
 
     <div class="col-md-6">
       <div class="card shadow-sm">
         <div class="card-body text-center">
-          <h5 class="card-title">Crea y Edita tus kits o mochilas</h5>
-          <p class="card-text">Edita y ajusta los datos de tus kits de herramientas.</p>
-          <a href="{{ url_for('regis_kit') }}" class="btn btn-primary">Crear</a>
+          {% if session['rol'] in [1, 2] %}
+            <h5 class="card-title">Crea y Edita tus kits o mochilas</h5>
+            <p class="card-text">Edita y ajusta los datos de tus kits de herramientas.</p>
+            <a href="{{ url_for('regis_kit') }}" class="btn btn-primary">Crear</a>
+          {% else %}
+            <h5 class="card-title">Préstamo de mochila completa</h5>
+            <p class="card-text">Registra el préstamo de una mochila o kit completo a tu nombre.</p>
+            <a href="{{ url_for('prestamo_mochila') }}" class="btn btn-primary">Registrar préstamo</a>
+          {% endif %}
         </div>
       </div>
     </div>

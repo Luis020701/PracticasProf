@@ -41,6 +41,7 @@ class Historial:
             if condi_local:
                 sql1 += " WHERE " + " AND ".join(condi_local)
 
+            sql1 += " ORDER BY m.timestamp DESC"
             cur1.execute(sql1, valor_local)
             resultados = cur1.fetchall()
 

@@ -15,7 +15,7 @@ Edición de Herramienta
     {% elif session['rol'] == 2 %}
       <span class="navbar-text me-3 text-secondary">Rol: Almacenista</span>
     {% else %}
-      <span class="navbar-text me-3 text-secondary">Rol: Técnico</span>
+      <span class="navbar-text me-3 text-secondary">Rol: Instalador</span>
     {% endif %}
   </div>
   <form action="{{ url_for('logout') }}" method="get">
@@ -77,16 +77,25 @@ Edición de Herramienta
       id="formBuscar"
       class="bg-white p-4 shadow rounded mb-4">
 
-  <h4 class="mb-3">Ingresa el Código Interno para empezar a editar</h4>
+  <h4 class="mb-3">🔍 Buscar Herramienta para Editar</h4>
+
+  <div class="alert alert-info" role="alert">
+    <strong>ℹ️ Paso 1:</strong> Ingresa el código interno de la herramienta que deseas editar y cargará todos sus datos.
+  </div>
 
   <input type="text" name="codigoinh"
-         placeholder="Código Interno"
-         class="form-control mb-3" required>
+         placeholder="Ej: TOOL-001"
+         class="form-control mb-3" list="herramientas-list" required>
+  <datalist id="herramientas-list">
+    {% for herramienta in autocompletar.herramientas %}
+    <option value="{{ herramienta.internal_code }}">{{ herramienta.name }}</option>
+    {% endfor %}
+  </datalist>
 
   <button type="submit"
           class="btn btn-primary w-100"
           id="buscarBtn">
-    <span id="buscarText">Cargar Datos</span>
+    <span id="buscarText">🔎 Cargar Datos</span>
     <span id="buscarSpinner"
           class="spinner-border spinner-border-sm d-none ms-2"></span>
   </button>
@@ -101,54 +110,94 @@ document.getElementById("formBuscar")?.addEventListener("submit", function () {
 
 
     <form action="/editar_herramienta" method="POST" class="bg-white p-4 shadow-sm rounded">
-      <h4 class="mb-3 text-center">Editar Herramienta</h4>
+      <h4 class="mb-3 text-center">✏️ Editar Herramienta</h4>
+
+      <div class="alert alert-warning" role="alert">
+        <strong>⚠️ Paso 2:</strong> Modifica los campos que desees cambiar y guarda los cambios.
+      </div>
 
       <div class="row g-3">
         <div class="col-md-4">
-          <label class="form-label">Nombre</label>
-          <input type="text" name="nombreh" value="{{ datos['name'] }}" class="form-control">
+          <label class="form-label"><strong>📝 Nombre</strong></label>
+          <input type="text" name="nombreh" value="{{ datos['name'] }}" class="form-control" list="nombres-herramientas-list">
         </div>
         <div class="col-md-4">
-          <label class="form-label">Tipo</label>
-          <input type="text" name="tipoh" value="{{ datos['tool_type'] }}" class="form-control">
+          <label class="form-label"><strong>🏷️ Tipo</strong></label>
+          <input type="text" name="tipoh" value="{{ datos['tool_type'] }}" class="form-control" list="tipos-herramientas-list">
         </div>
         <div class="col-md-4">
-          <label class="form-label">Marca</label>
-          <input type="text" name="brandh" value="{{ datos['brand'] }}" class="form-control">
+          <label class="form-label"><strong>🏭 Marca</strong></label>
+          <input type="text" name="brandh" value="{{ datos['brand'] }}" class="form-control" list="marcas-herramientas-list">
         </div>
 
         <div class="col-md-4">
-          <label class="form-label">Modelo</label>
-          <input type="text" name="modeloh" value="{{ datos['model'] }}" class="form-control">
+          <label class="form-label"><strong>📦 Modelo</strong></label>
+          <input type="text" name="modeloh" value="{{ datos['model'] }}" class="form-control" list="modelos-herramientas-list">
         </div>
         <div class="col-md-4">
-          <label class="form-label">Serie</label>
-          <input type="text" name="serieh" value="{{ datos['serial_number'] }}" class="form-control">
+          <label class="form-label"><strong>🔢 Serie</strong></label>
+          <input type="text" name="serieh" value="{{ datos['serial_number'] }}" class="form-control" list="series-herramientas-list">
         </div>
         <div class="col-md-4">
-          <label class="form-label">Código Interno</label>
-          <input type="text" name="codigoinh" value="{{ datos['internal_code'] }}" class="form-control" required>
+          <label class="form-label"><strong>🔐 Código Interno</strong></label>
+          <input type="text" name="codigoinh" value="{{ datos['internal_code'] }}" class="form-control" list="herramientas-list" required>
         </div>
 
         <div class="col-md-6">
-          <label class="form-label">Estatus</label>
+          <label class="form-label"><strong>⚙️ Estado</strong></label>
           <select name="statush" class="form-select">
-            <option value="operativa" {% if datos['status']=='operativa' %}selected{% endif %}>Operativa</option>
-            <option value="en_reparacion" {% if datos['status']=='en_reparacion' %}selected{% endif %}>En Reparación</option>
-            <option value="extraviada" {% if datos['status']=='extraviada' %}selected{% endif %}>Extraviada</option>
-            <option value="obsoleta" {% if datos['status']=='obsoleta' %}selected{% endif %}>Obsoleta</option>
+            <option value="operativa" {% if datos['status']=='operativa' %}selected{% endif %}>✅ Operativa</option>
+            <option value="en_reparacion" {% if datos['status']=='en_reparacion' %}selected{% endif %}>🔧 En Reparación</option>
+            <option value="extraviada" {% if datos['status']=='extraviada' %}selected{% endif %}>❓ Extraviada</option>
+            <option value="obsoleta" {% if datos['status']=='obsoleta' %}selected{% endif %}>❌ Obsoleta</option>
           </select>
         </div>
 
         <div class="col-md-6">
-          <label class="form-label">Ubicación</label>
-          <input type="text" name="localidadh" value="{{ datos['location'] }}" class="form-control">
+          <label class="form-label"><strong>📍 Ubicación</strong></label>
+          <input type="text" name="localidadh" value="{{ datos['location'] }}" class="form-control" list="ubicaciones-list">
         </div>
 
         <div class="col-md-6">
-          <label class="form-label">Responsable</label>
-          <input type="text" name="responsableh" value="{{ datos['responsible'] }}" class="form-control">
+          <label class="form-label"><strong>👤 Responsable</strong></label>
+          <input type="text" name="responsableh" value="{{ datos['responsible'] }}" class="form-control" list="usuarios-list">
+          <datalist id="usuarios-list">
+            {% for usuario in autocompletar.responsables %}
+            <option value="{{ usuario }}">
+            {% endfor %}
+          </datalist>
         </div>
+
+        <datalist id="nombres-herramientas-list">
+          {% for nombre in autocompletar.nombres_herramientas %}
+          <option value="{{ nombre }}">
+          {% endfor %}
+        </datalist>
+        <datalist id="tipos-herramientas-list">
+          {% for tipo in autocompletar.tipos_herramientas %}
+          <option value="{{ tipo }}">
+          {% endfor %}
+        </datalist>
+        <datalist id="marcas-herramientas-list">
+          {% for marca in autocompletar.marcas_herramientas %}
+          <option value="{{ marca }}">
+          {% endfor %}
+        </datalist>
+        <datalist id="modelos-herramientas-list">
+          {% for modelo in autocompletar.modelos_herramientas %}
+          <option value="{{ modelo }}">
+          {% endfor %}
+        </datalist>
+        <datalist id="series-herramientas-list">
+          {% for serie in autocompletar.series_herramientas %}
+          <option value="{{ serie }}">
+          {% endfor %}
+        </datalist>
+        <datalist id="ubicaciones-list">
+          {% for ubicacion in autocompletar.ubicaciones %}
+          <option value="{{ ubicacion }}">
+          {% endfor %}
+        </datalist>
 
         <div class="col-md-6">
           <label class="form-label">Precio</label>
@@ -158,6 +207,19 @@ document.getElementById("formBuscar")?.addEventListener("submit", function () {
         <div class="col-12">
           <label class="form-label">Observaciones</label>
           <textarea name="observacionesh" class="form-control" rows="2">{{ datos['observations'] }}</textarea>
+        </div>
+
+        <div class="col-12 alert alert-info mt-3">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="marcarPermanente" name="marcar_permanente">
+            <label class="form-check-label" for="marcarPermanente">
+              <strong>🔒 Marcar como asignación permanente</strong>
+              <small class="d-block text-muted mt-1">
+                Si se activa, esta herramienta será asignada permanentemente al responsable indicado.
+                Solo administradores o almacenistas podrán cambiarla en el futuro.
+              </small>
+            </label>
+          </div>
         </div>
 
         <div class="col-12">

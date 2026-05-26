@@ -46,6 +46,9 @@
                 <div class="input-group">
                     <span class="input-group-text">🔒</span>
                     <input type="password" id="password" name="password" placeholder="Contraseña" class="form-control" required>
+                    <button type="button" class="btn btn-outline-secondary" id="togglePassword" aria-label="Ver contraseña" title="Ver contraseña">
+                        👁️
+                    </button>
                 </div>
             </div>
 
@@ -66,6 +69,16 @@ document.addEventListener("DOMContentLoaded", function () {
     const spinner = document.getElementById("inlineSpinner");
     const btn = document.getElementById("loginBtn");
     const btnText = document.getElementById("btnText");
+    const passwordInput = document.getElementById("password");
+    const togglePassword = document.getElementById("togglePassword");
+
+    togglePassword.addEventListener("click", function () {
+        const mostrar = passwordInput.type === "password";
+        passwordInput.type = mostrar ? "text" : "password";
+        togglePassword.textContent = mostrar ? "🙈" : "👁️";
+        togglePassword.setAttribute("aria-label", mostrar ? "Ocultar contraseña" : "Ver contraseña");
+        togglePassword.setAttribute("title", mostrar ? "Ocultar contraseña" : "Ver contraseña");
+    });
 
     form.addEventListener("submit", function () {
         spinner.classList.remove("d-none");

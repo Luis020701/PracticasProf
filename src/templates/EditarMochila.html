@@ -15,7 +15,7 @@ Edición de Kit/Mochila
     {% elif session['rol'] == 2 %}
       <span class="navbar-text me-3 text-secondary">Rol: Almacenista</span>
     {% else %}
-      <span class="navbar-text me-3 text-secondary">Rol: Técnico</span>
+      <span class="navbar-text me-3 text-secondary">Rol: Instalador</span>
     {% endif %}
   </div>
   <form action="{{ url_for('logout') }}" method="get">
@@ -77,16 +77,25 @@ Edición de Kit/Mochila
       id="formBuscar"
       class="bg-white p-4 shadow rounded mb-4">
 
-  <h4 class="mb-3">Ingresa el codigo para empezar a editar</h4>
+  <h4 class="mb-3">🔍 Buscar Mochila/Kit para Editar</h4>
+
+  <div class="alert alert-info" role="alert">
+    <strong>ℹ️ Paso 1:</strong> Ingresa el código interno de la mochila/kit que deseas editar y cargará todos sus datos.
+  </div>
 
   <input type="text" name="codigo_KM"
-         placeholder="codigo Kit/Mochila"
-         class="form-control mb-3" required>
+         placeholder="Ej: MOC-001"
+         class="form-control mb-3" list="mochilas-list" required>
+  <datalist id="mochilas-list">
+    {% for mochila in autocompletar.mochilas %}
+    <option value="{{ mochila.internal_code }}">{{ mochila.nombre }}</option>
+    {% endfor %}
+  </datalist>
 
   <button type="submit"
           class="btn btn-primary w-100"
           id="buscarBtn">
-    <span id="buscarText">Cargar Datos</span>
+    <span id="buscarText">🔎 Cargar Datos</span>
     <span id="buscarSpinner"
           class="spinner-border spinner-border-sm d-none ms-2"></span>
   </button>
@@ -101,42 +110,62 @@ document.getElementById("formBuscar")?.addEventListener("submit", function () {
 
 
     <form action="/editar_KM" method="POST" class="bg-white p-4 shadow-sm rounded">
-      <h4 class="mb-3 text-center">Editar Kit/Mochila</h4>
+      <h4 class="mb-3 text-center">✏️ Editar Mochila/Kit</h4>
+
+      <div class="alert alert-warning" role="alert">
+        <strong>⚠️ Paso 2:</strong> Modifica los campos que desees cambiar y guarda los cambios.
+      </div>
 
       <div class="row g-3">
         <div class="col-md-4">
-          <label class="form-label">Nombre</label>
-          <input type="text" name="nombre_KM" value="{{ datos['nombre'] }}" class="form-control">
+          <label class="form-label"><strong>📝 Nombre</strong></label>
+          <input type="text" name="nombre_KM" value="{{ datos['nombre'] }}" class="form-control" list="nombres-mochilas-list">
         </div>
         <div class="col-md-4">
-          <label class="form-label">Codigo interno</label>
+          <label class="form-label"><strong>🔐 Código Interno</strong></label>
           <input type="text" name="codigo_KM" value="{{ datos['internal_code'] }}" class="form-control" readonly>
         </div>
-        <label class="form-label">Localidad</label>
-          <input type="text" name="localidad_KM" value="{{ datos['localidad'] }}" class="form-control">
-        </div>
         <div class="col-md-4">
-          <label class="form-label">Responsable</label>
-          <input type="text" name="Respos_KM" value="{{ datos['responsable'] }}" class="form-control">
+          <label class="form-label"><strong>📍 Localidad</strong></label>
+          <input type="text" name="localidad_KM" value="{{ datos['localidad'] }}" class="form-control" list="ubicaciones-list">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label"><strong>👤 Responsable</strong></label>
+          <input type="text" name="Respos_KM" value="{{ datos['responsable'] }}" class="form-control" list="usuarios-list">
+          <datalist id="usuarios-list">
+            {% for usuario in autocompletar.responsables %}
+            <option value="{{ usuario }}">
+            {% endfor %}
+          </datalist>
+          <datalist id="nombres-mochilas-list">
+            {% for nombre in autocompletar.nombres_mochilas %}
+            <option value="{{ nombre }}">
+            {% endfor %}
+          </datalist>
+          <datalist id="ubicaciones-list">
+            {% for ubicacion in autocompletar.ubicaciones %}
+            <option value="{{ ubicacion }}">
+            {% endfor %}
+          </datalist>
         </div>
 
         <div class="col-md-6">
-          <label class="form-label">Estatus</label>
+          <label class="form-label"><strong>⚙️ Estado</strong></label>
           <select name="status_KM" class="form-select">
-            <option value="disponible" {% if datos['estado']=='disponible' %}selected{% endif %}>disponible</option>
-            <option value="prestada" {% if datos['estado']=='prestada' %}selected{% endif %}>prestada</option>
-            <option value="parcial" {% if datos['estado']=='parcial' %}selected{% endif %}>parcial</option>
+            <option value="disponible" {% if datos['estado']=='disponible' %}selected{% endif %}>✅ Disponible</option>
+            <option value="prestada" {% if datos['estado']=='prestada' %}selected{% endif %}>📤 Prestada</option>
+            <option value="parcial" {% if datos['estado']=='parcial' %}selected{% endif %}>⚠️ Parcial</option>
           </select>
         </div>
 
         <div class="col-12">
-          <label class="form-label">Descripcion</label>
+          <label class="form-label"><strong>📄 Descripción de Contenido</strong></label>
           <textarea name="Descripcion_KM" class="form-control" rows="2">{{ datos['descripcion'] }}</textarea>
         </div>
 
         <div class="col-12">
           <button type="submit" class="btn btn-primary w-100 d-flex align-items-center justify-content-center" id="ediBtn">
-            <span id="btnText">Guardar Cambios</span>
+            <span id="btnText">✔️ Guardar Cambios</span>
             <div id="inlineSpinner" class="spinner-border text-light spinner-border-sm ms-2 d-none" role="status">
               <span class="visually-hidden">Loading...</span>
             </div>

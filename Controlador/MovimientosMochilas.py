@@ -18,6 +18,13 @@ class MovimientosMochilas:
 
             cur = Conn.cursor()
 
+            # Validar que accion sea "1" (agregar) o "0" (remover)
+            if accion not in ["1", "0", 1, 0]:
+                return False, "Acción inválida. Debe ser 1 (agregar) o 0 (remover)"
+
+            # Convertir a string para consistencia
+            accion = str(accion)
+
             # buscar herramienta y actualizar su estatus a prestamo en su propia tabla, debido a que ira dentro de la mochila
             sql="SELECT id FROM tools WHERE internal_code = %s AND status <> 'eliminada'"
             cur.execute(sql,(CodigoHerra,))
@@ -26,11 +33,20 @@ class MovimientosMochilas:
             if res is None:
                 return False, "No se encontro la herramienta"
             idH = res[0]
-            sqltool="Select action FROM movements WHERE tool_id = %s ORDER BY timestamp DESC LIMIT 1"
-            cur.execute(sqltool,(idH,))
-            res2=cur.fetchone()
-            if res2 is None or res2[0]=="salida":
-                return False, "La herramienta no esta disponible para ser añadida a la mochila"               
+            
+            # Validación diferente según si es agregar o remover
+            if accion == "1":  # Agregar a mochila
+                # Verificar que la herramienta esté disponible (última acción debe ser "entrada")
+                sqltool="Select action FROM movements WHERE tool_id = %s ORDER BY timestamp DESC LIMIT 1"
+                cur.execute(sqltool,(idH,))
+                res_action=cur.fetchone()
+                
+                if res_action is None:
+                    return False, "La herramienta no tiene registro de movimientos. No se puede agregar a la mochila"
+                
+                if res_action[0] != "entrada":
+                    # Si la última acción no es entrada, significa que está prestada (salida)
+                    return False, "La herramienta está prestada y no puede ser agregada a la mochila. Debe devolverse primero al almacén"            
             # buscar mochila
             sql1="SELECT id_mochila FROM mochilas WHERE internal_code = %s"
             cur.execute(sql1,(CodigoKM,))
@@ -42,14 +58,14 @@ class MovimientosMochilas:
             idKM = res1[0]
 
             # buscar usuario
-            sql2="SELECT id FROM user WHERE full_name = %s"
-            cur.execute(sql2,(nombre,))
-            res2 = cur.fetchone()
+            sql_user="SELECT id FROM user WHERE full_name = %s"
+            cur.execute(sql_user,(nombre,))
+            res_user = cur.fetchone()
 
-            if res2 is None:
+            if res_user is None:
                 return False, "No se encontro el usuario"
 
-            idUs = res2[0]
+            idUs = res_user[0]
             sql_check = """
             SELECT inside
             FROM mochila_tools
@@ -59,25 +75,40 @@ class MovimientosMochilas:
             cur.execute(sql_check,(idKM,idH))
             estado = cur.fetchone()
 
-            if estado:
+            if accion == "1":
+                # Agregar: No se puede añadir si ya está en cualquier mochila activa
+                sql_any = "SELECT id_mochila FROM mochila_tools WHERE id_tool = %s AND inside = 1"
+                cur.execute(sql_any,(idH,))
+                existe_en_mochila = cur.fetchone()
+                if existe_en_mochila is not None:
+                    return False, "La herramienta ya está dentro de una mochila"
+            else:
+                # Remover: Solo se puede retirar si ya está dentro de esta mochila
+                if estado is None or estado[0] != 1:
+                    return False, "La herramienta no está dentro de esta mochila"
 
-                if estado[0] == 1 and accion == "1":
-                    return False, "La herramienta ya está dentro de la mochila"
-
-                if estado[0] == 0 and accion == "0":
-                    return False, "La herramienta ya está fuera de la mochila"
-            #Actualizo el estatus de la herremienta en la tabla movements para llevar un control de su disponibilidad
-            sql2= "INSERT INTO movements(tool_id,user_id,action,person,location,observations,timestamp) VALUES(%s,%s,%s,%s,%s,%s,%s)"
+            #Actualizo el estatus de la herramienta en la tabla movements para llevar un control de su disponibilidad
+            sql_mov= "INSERT INTO movements(tool_id,user_id,action,person,location,observations,timestamp) VALUES(%s,%s,%s,%s,%s,%s,%s)"
+            
+            if accion == "1":
+                # Agregar a mochila
+                action = 'salida'
+                observacion = 'Añadida a mochila desde el sistema de prestamo de mochilas'
+            else:
+                # Remover de mochila
+                action = 'entrada'
+                observacion = 'Retirada de mochila para préstamo individual'
+            
             datos=(
                     idH,
                     idUs,
-                    'salida',
+                    action,
                     nombre,
                     'Mochila',
-                    'Añadida a mochila desde el sistema de prestamo de mochilas',
+                    observacion,
                     datetime.now()
                       )
-            cur.execute(sql2,datos)
+            cur.execute(sql_mov,datos)
             # insertar movimiento
             sql3 = """
             INSERT INTO mochila_tools
@@ -102,9 +133,9 @@ class MovimientosMochilas:
             Conn.commit()
 
             if accion == "1":
-                return True, "Añadida con exito"
+                return True, "Herramienta añadida a la mochila con éxito"
             else:
-                return True, "Eliminada con exito"
+                return True, "Herramienta retirada de la mochila con éxito"
 
         except Error as e:
 
@@ -135,16 +166,58 @@ class MovimientosMochilas:
                 estatus_invalidos = ['en_reparacion', 'extraviada', 'obsoleta']
                 if sts in estatus_invalidos:#valido que estatus tiene
                     return False, sts#si tiene alguno de estos 3 manda error
-                sql1="SELECT id_tool FROM mochila_tools WHERE id_tool = %s"#consulto si la herramienta esta en alguna mochila
+                sql1="SELECT inside FROM mochila_tools WHERE id_tool = %s AND inside = 1"#consulto si la herramienta esta dentro de una mochila
                 cur1.execute(sql1,(idh,))
                 res1=cur1.fetchone()
                 if res1 is None:
-                    return False,'No se encontro registro de la herramienta en la mochila'#si no esta regreso falso
+                    return True,'La herramienta no está en ninguna mochila'#si no esta regreso verdadero (disponible)
                 else:
-                    return True, "La herramienta esta en la mochila"#si esta regreso verdadero
+                    return False, "La herramienta está dentro de una mochila"#si esta regreso falso (no disponible)
             except Error as e:
                 return False, str(e)
             finally:
                 cur.close()
                 cur1.close()
+                Conn.close()
+    
+    def herramientaEnMochila(self, CodigoHerra) -> tuple[bool, bool]:
+        """Verifica si una herramienta está dentro de una mochila (inside=1)
+        
+        Retorna:
+            (ok, en_mochila): 
+                - ok=False si hay error
+                - en_mochila=True si la herramienta está dentro de una mochila
+                - en_mochila=False si la herramienta no está en ninguna mochila
+        """
+        db = Conexion()
+        ok, Conn = db.conectar()
+        if not ok:
+            return False, False
+        else:
+            try:
+                cur = Conn.cursor()
+                # Buscar el id de la herramienta
+                sql = "SELECT id FROM tools WHERE internal_code = %s AND status <> 'eliminada'"
+                cur.execute(sql, (CodigoHerra,))
+                res = cur.fetchone()
+                
+                if res is None:
+                    return False, False
+                
+                idh = res[0]
+                
+                # Verificar si existe en mochila_tools con inside=1
+                sql_check = "SELECT inside FROM mochila_tools WHERE id_tool = %s AND inside = 1"
+                cur.execute(sql_check, (idh,))
+                res_check = cur.fetchone()
+                
+                if res_check is not None:
+                    return True, True  # La herramienta está dentro de una mochila
+                else:
+                    return True, False  # La herramienta no está en ninguna mochila
+                    
+            except Error as e:
+                return False, False
+            finally:
+                cur.close()
                 Conn.close()

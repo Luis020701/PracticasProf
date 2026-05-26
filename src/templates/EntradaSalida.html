@@ -15,7 +15,7 @@ Entrada y Salida
     {% elif session['rol'] == 2 %}
       <span class="navbar-text me-3 text-secondary">Rol: Almacenista</span>
     {% else %}
-      <span class="navbar-text me-3 text-secondary">Rol: Técnico</span>
+      <span class="navbar-text me-3 text-secondary">Rol: Instalador</span>
     {% endif %}
   </div>
   <form action="{{ url_for('logout') }}" method="get">
@@ -32,25 +32,34 @@ Entrada y Salida
     </button>
     <div class="collapse navbar-collapse" id="navbarNavDropdown">
       <ul class="navbar-nav ms-auto">
+        {% if session['rol'] in [1, 2] %}
         <li class="nav-item"><a class="nav-link" href="{{ url_for('historial') }}">Historial</a></li>
         <li class="nav-item"><a class="nav-link" href="{{ url_for('buscar_herramienta') }}">Buscar</a></li>
         <li class="nav-item"><a class="nav-link" href="{{ url_for('inventario') }}">Inventario</a></li>
+        {% else %}
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('mi_inventario') }}">Mi inventario</a></li>
+        {% endif %}
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Herramienta</a>
           <ul class="dropdown-menu">
             <li><a class="dropdown-item" href="{{ url_for('entra_sale') }}">Entrada/Salida</a></li>
+            {% if session['rol'] in [1, 2] %}
             <li><a class="dropdown-item" href="{{ url_for('regisherra') }}">Registrar</a></li>
             <li><a class="dropdown-item" href="{{ url_for('editar_herramienta') }}">Editar</a></li>
             <li><a class="dropdown-item" href="{{ url_for('eliminar_herramienta') }}">Eliminar</a></li>
+            {% endif %}
           </ul>
         </li>
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Mochila/Kit</a>
           <ul class="dropdown-menu">
+            {% if session['rol'] in [1, 2] %}
             <li><a class="dropdown-item" href="{{ url_for('llenarMochila') }}">Entrada/Salida</a></li>
             <li><a class="dropdown-item" href="{{ url_for('regis_kit') }}">Registrar</a></li>
             <li><a class="dropdown-item" href="{{ url_for('editar_KM') }}">Editar</a></li>
             <li><a class="dropdown-item" href="{{ url_for('eliminar_KM') }}">Eliminar</a></li>
+            {% endif %}
+            <li><a class="dropdown-item" href="{{ url_for('prestamo_mochila') }}">Prestar completa</a></li>
           </ul>
         </li>
       </ul>
@@ -73,49 +82,73 @@ Entrada y Salida
     {% endwith %}
 
     <form action="/entra_sale" method="POST" class="bg-white p-4 shadow-sm rounded">
-      <h4 class="mb-3 text-center">Entrada y Salida de Herramientas</h4>
+      <h4 class="mb-3 text-center">📋 Registrar Préstamo o Devolución de Herramientas</h4>
 
       <div class="alert alert-info" role="alert">
-        <strong>Recordatorio:</strong> Si no recuerdas el Código Interno, puedes usar el Buscador 🔎
+        <strong>ℹ️ ¿Cómo funciona?</strong>
+        <ul class="mb-0 mt-2">
+          <li><strong>Devolución (Entrada):</strong> Cuando una herramienta regresa al almacén</li>
+          <li><strong>Préstamo (Salida):</strong> Cuando alguien se lleva una herramienta del almacén</li>
+          <li>⚠️ <strong>Nota:</strong> Las herramientas dentro de mochilas no pueden ser prestadas individualmente</li>
+          <li>💡 <strong>Consejo:</strong> Si no recuerdas el código, usa el Buscador en el menú 🔎</li>
+        </ul>
       </div>
 
       <div class="row g-3 mb-3">
         <div class="col-md-6">
-          <label class="form-label">Quien registra la acción</label>
+          <label class="form-label"><strong>👤 Quién registra esta acción</strong></label>
           <input type="text" name="nombrea" class="form-control bg-light" value="{{ session['nombre'] }}" readonly>
         </div>
         <div class="col-md-6">
-          <label class="form-label">Quien recibe o entrega</label>
-          <input type="text" name="nombreR" class="form-control">
+          <label class="form-label"><strong>🤝 Responsable del préstamo/devolución</strong></label>
+            <input type="text" name="nombreR" class="form-control {% if session['rol'] == 3 %}bg-light{% endif %}" placeholder="Nombre de la persona" list="usuarios-list" value="{% if session['rol'] == 3 %}{{ session['nombre'] }}{% endif %}" {% if session['rol'] == 3 %}readonly{% endif %} required>
+          <datalist id="usuarios-list">
+            {% for usuario in autocompletar.responsables %}
+            <option value="{{ usuario }}">
+            {% endfor %}
+          </datalist>
         </div>
       </div>
 
       <div id="accionesContainer">
         <div class="accion-block row g-3 mb-3">
           <div class="col-md-3">
-            <label class="form-label">Localidad</label>
-            <input type="text" name="locala[]" class="form-control" required>
+            <label class="form-label"><strong>📍 Ubicación/Destino</strong></label>
+            <input type="text" name="locala[]" class="form-control" placeholder="Ej: Obra, Almacén, Oficina" list="ubicaciones-list" required>
+            <datalist id="ubicaciones-list">
+              {% for ubicacion in autocompletar.ubicaciones %}
+              <option value="{{ ubicacion }}">
+              {% endfor %}
+            </datalist>
           </div>
           <div class="col-md-3">
-            <label class="form-label">Código Herramienta</label>
-            <input type="text" name="herra[]" class="form-control">
+            <label class="form-label"><strong>🔧 Código de Herramienta</strong></label>
+            <input type="text" name="herra[]" class="form-control" placeholder="Ej: TOOL-001" list="herramientas-list" required>
+            <datalist id="herramientas-list">
+              {% for herramienta in autocompletar.herramientas %}
+              <option value="{{ herramienta.internal_code }}">{{ herramienta.name }}</option>
+              {% endfor %}
+            </datalist>
           </div>
           <div class="col-md-2">
-            <label class="form-label">Acción</label>
-            <select name="acciona[]" class="form-select">
-              <option value="entrada">Entrada</option>
-              <option value="salida">Salida</option>
+            <label class="form-label"><strong>⚙️ Acción</strong></label>
+            <select name="acciona[]" class="form-select" required>
+              <option value="">-- Seleccionar --</option>
+              {% if session['rol'] in [1, 2] %}
+              <option value="entrada">✅ Devolución (Entrada)</option>
+              {% endif %}
+              <option value="salida">📤 Préstamo (Salida)</option>
             </select>
           </div>
           <div class="col-md-4">
-            <label class="form-label">Observaciones</label>
-            <input type="text" name="observacionesa[]" class="form-control">
+            <label class="form-label">📝 Notas/Observaciones</label>
+            <input type="text" name="observacionesa[]" class="form-control" placeholder="Opcional">
           </div>
         </div>
       </div>
 
-      <button type="button" class="btn btn-secondary mb-3" onclick="agregarAccion()">+ Añadir otra herramienta</button>
-      <button type="submit" class="btn btn-primary w-100">Registrar Acciones</button>
+      <button type="button" class="btn btn-secondary mb-3" onclick="agregarAccion()">+ Agregar otra herramienta</button>
+      <button type="submit" class="btn btn-primary w-100">✔️ Registrar Acciones</button>
     </form>
   </div>
 </div>

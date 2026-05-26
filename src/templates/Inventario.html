@@ -10,7 +10,7 @@
   {% elif session['rol'] == 2 %}
     <span class="navbar-text me-3 text-secondary">Rol: Almacenista</span>
   {% else %}
-    <span class="navbar-text me-3 text-secondary">Rol: Técnico</span>
+    <span class="navbar-text me-3 text-secondary">Rol: Instalador</span>
   {% endif %}
   <form action="{{ url_for('logout') }}" method="get">
     <button type="submit" class="btn btn-outline-danger btn-sm">Salir</button>
@@ -69,11 +69,12 @@
 
     <!-- FORMULARIO -->
     <form action="/inventario" method="POST" class="bg-white p-4 shadow rounded" target="_blank">
-      <h4 class="mb-3 text-center">Inventario</h4>
+      <h4 class="mb-3 text-center">📊 Descargar Reporte de Inventario</h4>
       <div class="alert alert-info text-center">
-        <strong>Nota:</strong> Pulsa el botón para descargar el inventario completo.
+        <strong>ℹ️ ¿Qué es este reporte?</strong>
+        <p class="mb-0 mt-2">Un documento completo con todas las herramientas y mochilas/kits registrados en el sistema. Útil para auditorías y revisiones.</p>
       </div>
-      <button type="submit" class="btn btn-primary w-100">Descargar reporte</button>
+      <button type="submit" class="btn btn-primary w-100">📥 Descargar Reporte Completo</button>
     </form>
   </div>
 </div>

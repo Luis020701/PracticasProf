@@ -15,7 +15,7 @@ Llenar Mochila/Kit
     {% elif session['rol'] == 2 %}
       <span class="navbar-text me-3 text-secondary">Rol: Almacenista</span>
     {% else %}
-      <span class="navbar-text me-3 text-secondary">Rol: Técnico</span>
+      <span class="navbar-text me-3 text-secondary">Rol: Instalador</span>
     {% endif %}
   </div>
   <form action="{{ url_for('logout') }}" method="get">
@@ -73,38 +73,53 @@ Llenar Mochila/Kit
     {% endwith %}
 
     <form action="/llenarMochila" method="POST" class="bg-white p-4 shadow-sm rounded">
-      <h4 class="mb-3 text-center">Añade o Elimina Herramientas de mochilas</h4>
+      <h4 class="mb-3 text-center">Añade o Elimina Herramientas de Mochilas/Kits</h4>
 
       <div class="alert alert-info" role="alert">
-        <strong>Recordatorio:</strong> Si solo creas tu Kit/mochila esta estará vacia 🔎
+        <strong>ℹ️ Instrucciones:</strong> 
+        <ul class="mb-0 mt-2">
+          <li><strong>Agregar:</strong> Selecciona una mochila, ingresa el código de la herramienta y elige "Agregar a mochila"</li>
+          <li><strong>Remover:</strong> Si necesitas prestar una herramienta individualmente, primero retírala de la mochila seleccionando "Remover de mochila"</li>
+        </ul>
       </div>
 
       <div class="row g-3 mb-3">
         <div class="col-md-6">
-          <label class="form-label">Quien registra la acción</label>
+          <label class="form-label">Quién registra la acción</label>
           <input type="text" name="nombreR" class="form-control bg-light" value="{{ session['nombre'] }}" readonly>
         </div>
-
+      </div>
 
       <div id="accionesContainer">
 
   <div class="accion-block row g-3 mb-3">
 
     <div class="col-md-3">
-      <label class="form-label">Mochila a la cual agregaras la herramienta</label>
-      <input type="text" name="codigoKM[]" class="form-control" placeholder="Código de la mochila" required>
+      <label class="form-label">Código de la Mochila/Kit</label>
+      <input type="text" name="codigoKM[]" class="form-control" placeholder="Ej: MOC-001" list="mochilas-list" required>
+      <datalist id="mochilas-list">
+        {% for mochila in autocompletar.mochilas %}
+        <option value="{{ mochila.internal_code }}">{{ mochila.nombre }}</option>
+        {% endfor %}
+      </datalist>
     </div>
 
     <div class="col-md-4">
-      <label class="form-label">Código Herramienta</label>
-      <input type="text" name="codigoHERRA[]" class="form-control">
+      <label class="form-label">Código de la Herramienta</label>
+      <input type="text" name="codigoHERRA[]" class="form-control" placeholder="Ej: TOOL-001" list="herramientas-list" required>
+      <datalist id="herramientas-list">
+        {% for herramienta in autocompletar.herramientas %}
+        <option value="{{ herramienta.internal_code }}">{{ herramienta.name }}</option>
+        {% endfor %}
+      </datalist>
     </div>
 
     <div class="col-md-3">
-      <label class="form-label">Elige la accion</label>
-      <select name="accion[]" class="form-control">
-        <option value="1">Entrada</option>
-        <option value="0">Salida</option>
+      <label class="form-label">Acción</label>
+      <select name="accion[]" class="form-control" required>
+        <option value="">-- Seleccionar --</option>
+        <option value="1">✅ Agregar a mochila</option>
+        <option value="0">❌ Remover de mochila</option>
       </select>
     </div>
 
@@ -112,7 +127,7 @@ Llenar Mochila/Kit
 
 </div>
 
-      <button type="button" class="btn btn-secondary mb-3" onclick="agregarAccion()">+ Añadir o eliminar otra herramienta a la mochila</button>
+      <button type="button" class="btn btn-secondary mb-3" onclick="agregarAccion()">+ Agregar otra herramienta</button>
       <button type="submit" class="btn btn-primary w-100">Registrar Acciones</button>
     </form>
   </div>

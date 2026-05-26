@@ -13,7 +13,7 @@
     {% elif session['rol'] == 2 %}
       <span class="navbar-text me-3 text-secondary">Rol: Almacenista</span>
     {% else %}
-      <span class="navbar-text me-3 text-secondary">Rol: Técnico</span>
+      <span class="navbar-text me-3 text-secondary">Rol: Instalador</span>
     {% endif %}
   </div>
   <form action="{{ url_for('logout') }}" method="get">
@@ -72,33 +72,63 @@
 
   <!-- FORMULARIO DE BUSQUEDA -->
   <form action="/historial" method="POST" class="bg-white p-4 shadow-sm rounded mb-4">
-    <h4 class="mb-3 text-center">Historial de movimientos</h4>
+    <h4 class="mb-3 text-center">📋 Historial de Movimientos</h4>
     <div class="alert alert-info" role="alert">
-      <strong>Recordatorio:</strong> Puedes buscar por fecha, movimiento, persona o herramienta
+      <strong>ℹ️ Instrucciones:</strong> Filtra por persona, herramienta, tipo de movimiento o rango de fechas para ver el historial
     </div>
 
     <div class="row g-3">
-      <div class="col-md-4">
-        <input type="text" name="nombreR" class="form-control" placeholder="Persona Responsable">
+      <div class="col-md-3">
+        <label class="form-label"><strong>👤 Persona Responsable</strong></label>
+        <input type="text" name="nombreR" class="form-control" placeholder="Ej: Juan Pérez" value="{{ filtros.nombrer }}" list="usuarios-list">
+        <datalist id="usuarios-list">
+          {% for usuario in autocompletar.responsables %}
+          <option value="{{ usuario }}">
+          {% endfor %}
+        </datalist>
       </div>
-      <div class="col-md-4">
-        <input type="text" name="herra" class="form-control" placeholder="Código Interno">
+      <div class="col-md-3">
+        <label class="form-label"><strong>🔧 Código de Herramienta</strong></label>
+        <input type="text" name="herra" class="form-control" placeholder="Ej: TOOL-001" value="{{ filtros.herra }}" list="herramientas-list">
+        <datalist id="herramientas-list">
+          {% for herramienta in autocompletar.herramientas %}
+          <option value="{{ herramienta.internal_code }}">{{ herramienta.name }}</option>
+          {% endfor %}
+        </datalist>
       </div>
-      <div class="col-md-4">
+      <div class="col-md-3">
+        <label class="form-label"><strong>👤 Propietario / Mochila</strong></label>
+        <input type="text" name="propietario" class="form-control" placeholder="Ej: Juan o Mochila A" value="{{ filtros.propietario }}" list="propietarios-list">
+        <datalist id="propietarios-list">
+          {% for responsable in autocompletar.responsables %}
+          <option value="{{ responsable }}">
+          {% endfor %}
+          {% for mochila in autocompletar.mochilas %}
+          <option value="{{ mochila.nombre }}">
+          <option value="{{ mochila.internal_code }}">
+          {% endfor %}
+        </datalist>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label"><strong>⚙️ Tipo de Movimiento</strong></label>
         <select name="accion" class="form-select">
-          <option value="" disabled selected>-- Acción --</option>
-          <option value="entrada">Entrada</option>
-          <option value="salida">Salida</option>
+          <option value="" disabled selected>-- Seleccionar --</option>
+          <option value="alta" {% if filtros.accion == 'alta' %}selected{% endif %}>🆕 Alta</option>
+          <option value="entrada" {% if filtros.accion == 'entrada' %}selected{% endif %}>✅ Devolución (Entrada)</option>
+          <option value="salida" {% if filtros.accion == 'salida' %}selected{% endif %}>📤 Préstamo (Salida)</option>
+          <option value="cambio de propietario" {% if filtros.accion == 'cambio de propietario' %}selected{% endif %}>🔁 Cambio de propietario</option>
         </select>
       </div>
-      <div class="col-md-6">
-        <input type="date" name="fechaini" class="form-control">
+      <div class="col-md-3">
+        <label class="form-label"><strong>📅 Fecha Desde</strong></label>
+        <input type="date" name="fechaini" class="form-control" value="{{ filtros.fechaini }}">
       </div>
-      <div class="col-md-6">
-        <input type="date" name="fechafin" class="form-control">
+      <div class="col-md-3">
+        <label class="form-label"><strong>📅 Fecha Hasta</strong></label>
+        <input type="date" name="fechafin" class="form-control" value="{{ filtros.fechafin }}">
       </div>
-      <div class="col-12">
-        <button type="submit" class="btn btn-primary w-100">Buscar Registros</button>
+      <div class="col-md-6 d-flex align-items-end">
+        <button type="submit" class="btn btn-primary w-100">🔎 Buscar Registros</button>
       </div>
     </div>
   </form>
@@ -107,6 +137,7 @@
   <form id="form-reporte" action="/reporte" method="POST" class="bg-white p-4 shadow-sm rounded mb-4" target="_blank">
     <input type="hidden" name="nombreR" value="{{ filtros.nombrer }}">
     <input type="hidden" name="herra" value="{{ filtros.herra }}">
+    <input type="hidden" name="propietario" value="{{ filtros.propietario }}">
     <input type="hidden" name="accion" value="{{ filtros.accion }}">
     <input type="hidden" name="fechaini" value="{{ filtros.fechaini }}">
     <input type="hidden" name="fechafin" value="{{ filtros.fechafin }}">
@@ -119,12 +150,15 @@
       <table class="table table-striped table-hover tabla_bus">
         <thead>
           <tr>
-            <th>Persona Responsable</th>
-            <th>Nombre de herramienta</th>
-            <th>Código Interno</th>
-            <th>Tipo de movimiento</th>
-            <th>Fecha</th>
-            <th>Estatus</th>
+            <th>👤 Responsable</th>
+            <th>🔧 Herramienta</th>
+            <th>🔐 Código</th>
+            <th>⚙️ Movimiento</th>
+            <th>� Tipo Asign.</th>
+            <th>📍 Ubicación</th>
+            <th>📝 Observaciones</th>
+            <th>📅 Fecha/Hora</th>
+            <th>✅ Estado</th>
           </tr>
         </thead>
         <tbody>
@@ -133,7 +167,28 @@
               <td>{{ fila.person }}</td>
               <td>{{ fila.name }}</td>
               <td>{{ fila.internal_code }}</td>
-              <td>{{ fila.action }}</td>
+              <td>
+                {% if fila.action == 'alta' %}
+                  <span class="badge bg-info text-white">🆕 Alta</span>
+                {% elif fila.action == 'entrada' %}
+                  <span class="badge bg-success">✅ Devolución</span>
+                {% elif fila.action == 'salida' %}
+                  <span class="badge bg-warning text-dark">📤 Préstamo</span>
+                {% elif fila.action == 'cambio de propietario' %}
+                  <span class="badge bg-primary text-white">🔁 Cambio de propietario</span>
+                {% else %}
+                  {{ fila.action }}
+                {% endif %}
+              </td>
+              <td>
+                {% if fila.assignment_type == 'permanente' %}
+                  <span class="badge bg-danger">🔒 PERMANENTE</span>
+                {% else %}
+                  <span class="badge bg-secondary">Temporal</span>
+                {% endif %}
+              </td>
+              <td>{{ fila.location or '-' }}</td>
+              <td>{{ fila.observations or '-' }}</td>
               <td>{{ fila.timestamp }}</td>
               <td>{{ fila.status }}</td>
             </tr>

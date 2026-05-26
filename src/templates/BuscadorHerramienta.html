@@ -15,7 +15,7 @@
     {% elif session['rol'] == 2 %}
       <span class="navbar-text me-3 text-secondary">Rol: Almacenista</span>
     {% else %}
-      <span class="navbar-text me-3 text-secondary">Rol: Técnico</span>
+      <span class="navbar-text me-3 text-secondary">Rol: Instalador</span>
     {% endif %}
   </div>
   <form action="{{ url_for('logout') }}" method="get">
@@ -75,28 +75,72 @@
     {% endwith %}
 
     <div class="bg-white p-4 shadow-sm rounded mb-4">
-      <h4 class="mb-3 text-center">Buscar Herramienta 🔍</h4>
-      <div class="input-group">
-        <span class="input-group-text">🔎</span>
-        <input type="text" placeholder="Nombre o Código Interno" name="buscar" id="buscar" class="form-control" required>
+      <h4 class="mb-3 text-center">🔍 Buscar Herramienta en el Inventario</h4>
+      <div class="alert alert-info" role="alert">
+        <strong>ℹ️ Instrucciones:</strong> Escribe el nombre de la herramienta, su código interno o el propietario (persona o mochila) para buscar. Los resultados se muestran en tiempo real.
+      </div>
+      <div class="row g-3">
+        <div class="col-md-5">
+          <div class="input-group">
+            <span class="input-group-text">🔎</span>
+            <input type="text" placeholder="Nombre o Código Interno (Ej: TOOL-001 o Destornillador)" name="buscar" id="buscar" class="form-control" list="herramientas-busqueda-list">
+            <datalist id="herramientas-busqueda-list">
+              {% for herramienta in autocompletar.herramientas %}
+              <option value="{{ herramienta.internal_code }}">{{ herramienta.name }}</option>
+              {% endfor %}
+              {% for nombre in autocompletar.nombres_herramientas %}
+              <option value="{{ nombre }}">
+              {% endfor %}
+            </datalist>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="input-group">
+            <span class="input-group-text">👤</span>
+            <input type="text" placeholder="Propietario / Mochila" id="owner" class="form-control" list="propietarios-list">
+            <datalist id="propietarios-list">
+              {% for responsable in autocompletar.responsables %}
+              <option value="{{ responsable }}">
+              {% endfor %}
+              {% for mochila in autocompletar.mochilas %}
+              <option value="{{ mochila.nombre }}">
+              <option value="{{ mochila.internal_code }}">
+              {% endfor %}
+            </datalist>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="input-group">
+            <span class="input-group-text">📍</span>
+            <input type="text" placeholder="Ubicación de anaquel" id="location" class="form-control" list="ubicaciones-list">
+            <datalist id="ubicaciones-list">
+              {% for ubicacion in autocompletar.ubicaciones %}
+              <option value="{{ ubicacion }}">
+              {% endfor %}
+            </datalist>
+          </div>
+        </div>
       </div>
     </div>
-
     <div class="table-responsive shadow-sm rounded">
       <table class="table table-striped table-hover align-middle mb-0" id="buscartable">
         <thead class="table-primary text-center">
           <tr>
             <th>ID</th>
-            <th>Nombre</th>
-            <th>Serie</th>
-            <th>Código</th>
-            <th>Tipo</th>
-            <th>Estatus</th>
-            <th>Responsable</th>
+            <th>📝 Nombre</th>
+            <th>🔢 Serie</th>
+            <th>🔐 Código</th>
+            <th>🏷️ Tipo</th>
+            <th>⚙️ Estado</th>
+            <th>👥 Responsable</th>
+            <th>🔒 Asignación</th>
+            <th>👤 Propietario</th>
+            <th>📍 Ubicación</th>
+            <th>🎒 Mochila/Kit</th>
           </tr>
         </thead>
         <tbody id="Resultados" class="text-center">
-          <tr><td colspan="7" class="text-muted">Escribe para buscar...</td></tr>
+          <tr><td colspan="11" class="text-muted">Escribe para buscar...</td></tr>
         </tbody>
       </table>
     </div>
@@ -104,16 +148,22 @@
 </div>
 
 <script>
-document.getElementById('buscar').addEventListener('input', function () {
-  const query = this.value.trim();
-  const tabla = document.getElementById('Resultados');
+const searchInput = document.getElementById('buscar');
+const ownerInput = document.getElementById('owner');
+const locationInput = document.getElementById('location');
+const tabla = document.getElementById('Resultados');
 
-  if (query.length === 0) {
-    tabla.innerHTML = '<tr><td colspan="7" class="text-muted">Escribe para buscar...</td></tr>';
+function buscarHerramientas() {
+  const query = searchInput.value.trim();
+  const owner = ownerInput.value.trim();
+  const location = locationInput.value.trim();
+
+  if (query.length === 0 && owner.length === 0 && location.length === 0) {
+    tabla.innerHTML = '<tr><td colspan="10" class="text-muted">Escribe para buscar...</td></tr>';
     return;
   }
 
-  fetch(`/api/Buscar?q=${encodeURIComponent(query)}`)
+  fetch(`/api/Buscar?q=${encodeURIComponent(query)}&owner=${encodeURIComponent(owner)}&location=${encodeURIComponent(location)}`)
     .then(response => {
       if (!response.ok) throw new Error("Error en respuesta del servidor");
       return response.json();
@@ -121,10 +171,40 @@ document.getElementById('buscar').addEventListener('input', function () {
     .then(data => {
       tabla.innerHTML = '';
       if (data.length === 0) {
-        tabla.innerHTML = '<tr><td colspan="7">Sin resultados</td></tr>';
+        tabla.innerHTML = '<tr><td colspan="11">Sin resultados</td></tr>';
         return;
       }
       data.forEach(h => {
+        let mochilaInfo = '<span class="badge bg-success">✅ Disponible</span>';
+        if (h.en_mochila === 1 && h.mochila_nombre) {
+          mochilaInfo = `<span class="badge bg-warning text-dark">🎒 ${h.mochila_nombre}</span>`;
+        } else if (h.en_mochila === 1) {
+          mochilaInfo = '<span class="badge bg-warning text-dark">🎒 En mochila</span>';
+        }
+
+        let propietario = h.current_owner || h.responsible || '-';
+        let propietarioInfo = `<span class="badge bg-secondary text-white">👤 ${propietario}</span>`;
+        if (h.en_mochila === 1 && h.mochila_nombre) {
+          propietarioInfo = `<span class="badge bg-warning text-dark">🎒 ${h.mochila_nombre}</span>`;
+        } else if (h.last_action === 'salida' && h.last_person) {
+          propietarioInfo = `<span class="badge bg-primary text-white">👤 ${h.last_person}</span>`;
+        }
+
+        let asignacionInfo = '<span class="badge bg-secondary text-white">Temporal</span>';
+        if (h.assignment_status === 'permanente') {
+          const assignedTo = h.permanent_assignment_type === 'user' ? h.permanent_user : h.permanent_mochila;
+          asignacionInfo = `<span class="badge bg-danger">🔒 Permanente${assignedTo ? ' - ' + assignedTo : ''}</span>`;
+        }
+
+        let ubicacionInfo = h.location || '-';
+        if (h.location && h.location.toLowerCase().includes('almacén')) {
+          ubicacionInfo = `<span class="badge bg-info text-white">🏭 ${h.location}</span>`;
+        } else if (h.location) {
+          ubicacionInfo = `<span class="badge bg-secondary text-white">📍 ${h.location}</span>`;
+        } else {
+          ubicacionInfo = '<span class="text-muted">-</span>';
+        }
+
         tabla.innerHTML += `
           <tr>
             <td>${h.id}</td>
@@ -133,7 +213,11 @@ document.getElementById('buscar').addEventListener('input', function () {
             <td>${h.internal_code}</td>
             <td>${h.tool_type}</td>
             <td>${h.status}</td>
-            <td>${h.responsible}</td>
+            <td>${h.responsible || '-'}</td>
+            <td>${asignacionInfo}</td>
+            <td>${propietarioInfo}</td>
+            <td>${ubicacionInfo}</td>
+            <td>${mochilaInfo}</td>
           </tr>
         `;
       });
@@ -141,6 +225,10 @@ document.getElementById('buscar').addEventListener('input', function () {
     .catch(error => {
       console.error('Error en fetch:', error);
     });
-});
+}
+
+searchInput.addEventListener('input', buscarHerramientas);
+ownerInput.addEventListener('input', buscarHerramientas);
+locationInput.addEventListener('input', buscarHerramientas);
 </script>
 {% endblock %}

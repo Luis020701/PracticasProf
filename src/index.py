@@ -20,7 +20,9 @@ from Controlador.Historial import Historial
 from Controlador.ValidarLogin import ValidarLogin
 from Controlador.Inventario import Inventario
 from Controlador.AltaMochilas import AltaMochilas
+from Controlador.AsignacionesPermanentes import AsignacionesPermanentes
 from Controlador.MovimientosMochilas import MovimientosMochilas
+from DataBase.Conexion import Conexion
 Inv = Flask(__name__)
 Inv.secret_key ="cookies_1_2.3.4_5_6"
 
@@ -30,7 +32,7 @@ Inv.secret_key ="cookies_1_2.3.4_5_6"
 ROLES = {
     "Administrador":1,
     "Almacen":2,
-    "tecnico":3
+    "Instalador":3
 }
 #=============================
 #=============================
@@ -72,9 +74,234 @@ def role_required(*roles):
             return f(*args, **kwargs)
         return decorated_function
     return decorator
+
+def es_instalador():
+    """Indica si el usuario actual tiene permisos de instalador."""
+    return session.get("rol") == ROLES["Instalador"]
+
 #========================================================================================
+#FUNCIÓN AUXILIAR PARA OBTENER USUARIOS
 #========================================================================================
-#RUTAS DE LA APLICACION
+def obtener_usuarios():
+    """Obtiene la lista de nombres de usuarios de la base de datos"""
+    try:
+        db = Conexion()
+        ok, conn = db.conectar()
+        if not ok:
+            return []
+        
+        cur = conn.cursor(dictionary=True)
+        sql = "SELECT full_name FROM user WHERE is_active = 1 ORDER BY full_name"
+        cur.execute(sql)
+        usuarios = [row['full_name'] for row in cur.fetchall()]
+        cur.close()
+        conn.close()
+        return usuarios
+    except Exception as e:
+        print(f"Error al obtener usuarios: {e}")
+        return []
+
+def obtener_codigos_herramientas():
+    """Obtiene códigos de herramientas existentes y activas para autocompletado."""
+    try:
+        db = Conexion()
+        ok, conn = db.conectar()
+        if not ok:
+            return []
+
+        cur = conn.cursor(dictionary=True)
+        sql = """
+            SELECT internal_code, name
+            FROM tools
+            WHERE status <> 'eliminada'
+              AND internal_code IS NOT NULL
+              AND internal_code <> ''
+            ORDER BY internal_code
+        """
+        cur.execute(sql)
+        herramientas = cur.fetchall()
+        cur.close()
+        conn.close()
+        return herramientas
+    except Exception as e:
+        print(f"Error al obtener herramientas: {e}")
+        return []
+
+def obtener_codigos_mochilas():
+    """Obtiene códigos de mochilas/kits activos para autocompletado."""
+    try:
+        db = Conexion()
+        ok, conn = db.conectar()
+        if not ok:
+            return []
+
+        cur = conn.cursor(dictionary=True)
+        sql = """
+            SELECT internal_code, nombre
+            FROM mochilas
+            WHERE activo <> 0
+              AND internal_code IS NOT NULL
+              AND internal_code <> ''
+            ORDER BY internal_code
+        """
+        cur.execute(sql)
+        mochilas = cur.fetchall()
+        cur.close()
+        conn.close()
+        return mochilas
+    except Exception as e:
+        print(f"Error al obtener mochilas: {e}")
+        return []
+
+def obtener_valores_distintos(tabla, columna, condicion="1=1"):
+    """Obtiene valores únicos de una columna para catálogos de autocompletado."""
+    try:
+        db = Conexion()
+        ok, conn = db.conectar()
+        if not ok:
+            return []
+
+        cur = conn.cursor()
+        sql = f"""
+            SELECT DISTINCT {columna}
+            FROM {tabla}
+            WHERE {condicion}
+              AND {columna} IS NOT NULL
+              AND {columna} <> ''
+            ORDER BY {columna}
+        """
+        cur.execute(sql)
+        valores = [row[0] for row in cur.fetchall()]
+        cur.close()
+        conn.close()
+        return valores
+    except Exception as e:
+        print(f"Error al obtener catálogo {tabla}.{columna}: {e}")
+        return []
+
+def obtener_catalogos_autocompletado():
+    """Agrupa catálogos usados por los formularios para sugerencias."""
+    usuarios = obtener_usuarios()
+    herramientas = obtener_codigos_herramientas()
+    mochilas = obtener_codigos_mochilas()
+
+    ubicaciones = sorted(set(
+        obtener_valores_distintos("tools", "location", "status <> 'eliminada'")
+        + obtener_valores_distintos("movements", "location")
+        + obtener_valores_distintos("mochilas", "localidad", "activo <> 0")
+    ))
+    responsables = sorted(set(
+        usuarios
+        + obtener_valores_distintos("tools", "responsible", "status <> 'eliminada'")
+        + obtener_valores_distintos("movements", "person")
+        + obtener_valores_distintos("mochilas", "responsable", "activo <> 0")
+    ))
+
+    return {
+        "usuarios": usuarios,
+        "responsables": responsables,
+        "herramientas": herramientas,
+        "mochilas": mochilas,
+        "nombres_herramientas": obtener_valores_distintos("tools", "name", "status <> 'eliminada'"),
+        "tipos_herramientas": obtener_valores_distintos("tools", "tool_type", "status <> 'eliminada'"),
+        "marcas_herramientas": obtener_valores_distintos("tools", "brand", "status <> 'eliminada'"),
+        "modelos_herramientas": obtener_valores_distintos("tools", "model", "status <> 'eliminada'"),
+        "series_herramientas": obtener_valores_distintos("tools", "serial_number", "status <> 'eliminada'"),
+        "nombres_mochilas": obtener_valores_distintos("mochilas", "nombre", "activo <> 0"),
+        "ubicaciones": ubicaciones,
+    }
+
+@Inv.context_processor
+def inyectar_catalogos_autocompletado():
+    """Hace disponibles los catálogos en todas las plantillas."""
+    return {"autocompletar": obtener_catalogos_autocompletado()}
+
+def obtener_mi_inventario(nombre_usuario):
+    """Obtiene herramientas y mochilas asignadas al usuario en sesión."""
+    db = Conexion()
+    ok, conn = db.conectar()
+    if not ok:
+        return False, conn
+
+    try:
+        cur = conn.cursor(dictionary=True)
+        cur.execute("""
+            SELECT
+                t.internal_code,
+                t.name,
+                t.brand,
+                t.model,
+                t.status,
+                t.location,
+                lm.timestamp AS assigned_at,
+                'Herramienta' AS item_type
+            FROM tools t
+            JOIN (
+                SELECT m1.tool_id, m1.person, m1.action, m1.timestamp
+                FROM movements m1
+                JOIN (
+                    SELECT tool_id, MAX(timestamp) AS max_ts
+                    FROM movements
+                    GROUP BY tool_id
+                ) latest ON latest.tool_id = m1.tool_id AND latest.max_ts = m1.timestamp
+            ) lm ON lm.tool_id = t.id
+            WHERE t.status <> 'eliminada'
+              AND lm.action = 'salida'
+              AND lm.person = %s
+            ORDER BY lm.timestamp DESC
+        """, (nombre_usuario,))
+        herramientas = cur.fetchall()
+
+        cur.execute("""
+            SELECT
+                internal_code,
+                nombre,
+                descripcion,
+                estado,
+                localidad,
+                responsable,
+                'Mochila/Kit' AS item_type
+            FROM mochilas
+            WHERE activo <> 0
+              AND responsable = %s
+            ORDER BY nombre
+        """, (nombre_usuario,))
+        mochilas = cur.fetchall()
+
+        return True, {"herramientas": herramientas, "mochilas": mochilas}
+    except Exception as e:
+        return False, str(e)
+    finally:
+        cur.close()
+        conn.close()
+
+def prestar_mochila_completa(codigo_mochila, responsable, localidad):
+    """Registra el préstamo de una mochila completa a un responsable."""
+    db = Conexion()
+    ok, conn = db.conectar()
+    if not ok:
+        return False, conn
+
+    try:
+        cur = conn.cursor()
+        cur.execute("""
+            UPDATE mochilas
+            SET estado = 'prestada', responsable = %s, localidad = %s
+            WHERE internal_code = %s AND activo <> 0
+        """, (responsable, localidad, codigo_mochila))
+        if cur.rowcount == 0:
+            conn.rollback()
+            return False, "No se encontró la mochila o está inactiva"
+        conn.commit()
+        return True, "Préstamo de mochila registrado correctamente"
+    except Exception as e:
+        conn.rollback()
+        return False, str(e)
+    finally:
+        cur.close()
+        conn.close()
+
+#========================================================================================
 
 @Inv.route('/login', methods=['GET', 'POST'])
 def login():
@@ -142,7 +369,7 @@ def regisherra():
             precioh = Decimal(precioh_raw) if precioh_raw else Decimal('0')
         except InvalidOperation:
             flash('Precio inválido. Por favor ingresa un número válido.', 'error')
-            return render_template("RegistrarHerramienta.html")
+            return render_template("RegistrarHerramienta.html", usuarios=obtener_usuarios())
         alta = AltaHerramientas()
         ok, valor = alta.altah(
             nombreh,tipoh,brandh,modeloh,serieh,
@@ -153,15 +380,21 @@ def regisherra():
         if not ok:
             print("error")
             flash(valor,'error')#enviamos el error de la falta de conexion
-            return render_template("RegistrarHerramienta.html")
+            return render_template("RegistrarHerramienta.html", usuarios=obtener_usuarios())
         if valor:
+            mov = Movimientos()
+            user_name = session.get('nombre','')
+            ok_log, log_msg = mov.mov(user_name, responsableh, localidadh, 'alta', 'Alta de herramienta', codigoinh)
+            if not ok_log:
+                flash(f'Atención: no se pudo registrar el historial de alta ({log_msg})', 'warning')
             flash('Insercion correcta', 'success')#mando un mensaje de exito a la plantilla html
-            return render_template("RegistrarHerramienta.html", modo='Crear')
+            return render_template("RegistrarHerramienta.html", modo='Crear', usuarios=obtener_usuarios())
     else:
         #Si no es get renderizo la pagina de registro
-        return render_template("RegistrarHerramienta.html", modo='Crear')  
+        return render_template("RegistrarHerramienta.html", modo='Crear', usuarios=obtener_usuarios())  
 @Inv.route('/regis_kit', methods=['GET', 'POST'])
 @login_required
+@role_required(ROLES['Administrador'], ROLES['Almacen'])
 def regis_kit():
     """
     Esta funcion permite la creacion de mochilas o kits de herramientas
@@ -176,17 +409,17 @@ def regis_kit():
         
         if status_kit not in estados_disponibles:
             flash('Error, El status no es correcto','error')
-            return render_template("Mochilas.html")
+            return render_template("Mochilas.html", usuarios=obtener_usuarios())
         alta_m = AltaMochilas()
         ok, resultado = alta_m.registro_kit(nombre_kit,respos_kit,status_kit,descripcion_kit,codigoi)
         if not ok:
             flash(resultado,'error')
-            return render_template("Mochilas.html")
+            return render_template("Mochilas.html", usuarios=obtener_usuarios())
         else:
             flash(resultado,'success')
-            return render_template("Mochilas.html")
+            return render_template("Mochilas.html", usuarios=obtener_usuarios())
     else:
-        return render_template("Mochilas.html")
+        return render_template("Mochilas.html", usuarios=obtener_usuarios())
 @Inv.route('/eliminar_herramienta', methods=['GET', 'POST'])
 @login_required
 @role_required(ROLES['Administrador'], ROLES['Almacen'])
@@ -216,12 +449,12 @@ def eliminar_KM():
         ok, valor = elimi.eliminar_KM(codiin)
         if not ok:
             flash(valor, 'danger')
-            return render_template('eliminarMochila.html')
+            return render_template('eliminarMochila.html', mochilas=obtener_codigos_mochilas())
         else:
             flash('Eliminado con exito','info')
-            return render_template('eliminarMochila.html')
+            return render_template('eliminarMochila.html', mochilas=obtener_codigos_mochilas())
     else:
-        return render_template('eliminarMochila.html')
+        return render_template('eliminarMochila.html', mochilas=obtener_codigos_mochilas())
 @Inv.route('/editar_herramienta', methods=['GET', 'POST'])
 @login_required
 @role_required(ROLES['Administrador'], ROLES['Almacen'])
@@ -245,31 +478,59 @@ def editar_herramienta():
             precioh = Decimal(precioh_raw) if precioh_raw else Decimal('0')
         except InvalidOperation:
             flash('Precio inválido. Por favor ingresa un número válido.', 'error')#Retorno un error
-            return render_template("RegistrarHerramienta.html")
+            return render_template("RegistrarHerramienta.html", usuarios=obtener_usuarios())
         edih= AltaHerramientas()
+        old_ok, old_data = edih.cargardatos(codigoinh)
+        old_responsable = old_data['responsible'] if old_ok and isinstance(old_data, dict) else None
+
         ok, valor= edih.editah(
             nombreh,tipoh,brandh,modeloh,serieh,codigoinh,statush,
             localidadh,responsableh,
             precioh,observacionesh)
         if not ok:
             flash(valor,'danger')
-            return render_template('EditarHerramienta.html', datos=None)
+            return render_template('EditarHerramienta.html', datos=None, usuarios=obtener_usuarios())
         else:
+            user_name = session.get('nombre','')
+            user_rol = session.get('rol')
+            marcar_permanente = request.form.get('marcar_permanente', '').strip().lower() == 'on'
+
+            if old_ok and old_responsable and old_responsable != responsableh:
+                mov = Movimientos()
+                ok_log, log_msg = mov.mov(user_name, responsableh, localidadh, 'cambio de propietario', f'Cambio de propietario de {old_responsable} a {responsableh}', codigoinh, rol=user_rol)
+                if not ok_log:
+                    flash(f'Atención: {log_msg}', 'warning')
+                else:
+                    if marcar_permanente:
+                        asig_perm = AsignacionesPermanentes()
+                        ok_perm, msg_perm = asig_perm.marcar_asignacion_permanente(codigoinh, responsableh, 'auto', user_name)
+                        if ok_perm:
+                            flash(f'{msg_perm}', 'success')
+                        else:
+                            flash(f'Advertencia: {msg_perm}', 'warning')
+            elif marcar_permanente:
+                asig_perm = AsignacionesPermanentes()
+                ok_perm, msg_perm = asig_perm.marcar_asignacion_permanente(codigoinh, responsableh, 'auto', user_name)
+                if ok_perm:
+                    flash(f'{msg_perm}', 'success')
+                else:
+                    flash(f'Advertencia: {msg_perm}', 'warning')
+
             flash('Actualizacion de datos Exitosa!','success')
-            return render_template('EditarHerramienta.html', datos=None)
+            return render_template('EditarHerramienta.html', datos=None, usuarios=obtener_usuarios())
     else:
         codigoinh= request.args.get('codigoinh','').strip()
         if codigoinh == '':
-            return render_template('EditarHerramienta.html', datos=None)
+            return render_template('EditarHerramienta.html', datos=None, usuarios=obtener_usuarios())
         edi=AltaHerramientas()
         ok, valor = edi.cargardatos(codigoinh)
         if not ok:
             flash(valor,'danger')
-            return render_template('EditarHerramienta.html', datos = None)
+            return render_template('EditarHerramienta.html', datos = None, usuarios=obtener_usuarios())
         else:
             flash('Herramienta Encontrada!','info')
             #Renderizo la pagina y envio los datos actuales
-            return render_template('EditarHerramienta.html', datos=valor)
+            return render_template('EditarHerramienta.html', datos=valor, usuarios=obtener_usuarios())
 @Inv.route('/editar_KM', methods=['GET', 'POST'])
 @login_required
 @role_required(ROLES['Administrador'], ROLES['Almacen'])
@@ -287,22 +548,22 @@ def editar_KM():
         ok , resultado = edi_KM.editar_KM(nombre_KM,Respos_KM,status_KM,Descripcion_KM,codigoi,localidad_KM)
         if not ok:
             flash(resultado,'error')
-            return render_template('EditarMochila.html', datos=None)
+            return render_template('EditarMochila.html', datos=None, usuarios=obtener_usuarios(), mochilas=obtener_codigos_mochilas())
         else:
             flash(resultado,'success')
-            return render_template('EditarMochila.html', datos=None)
+            return render_template('EditarMochila.html', datos=None, usuarios=obtener_usuarios(), mochilas=obtener_codigos_mochilas())
     else: 
         codigoi = request.args.get('codigo_KM','').strip()
         if codigoi == '':
-            return render_template('EditarMochila.html', datos=None)
+            return render_template('EditarMochila.html', datos=None, usuarios=obtener_usuarios(), mochilas=obtener_codigos_mochilas())
         else:
             edi_KM = AltaMochilas()
             ok, valor= edi_KM.cargar_KM(codigoi)
             if not ok:
                 flash(valor,'danger')
-                return render_template('EditarMochila.html', datos=None)
+                return render_template('EditarMochila.html', datos=None, usuarios=obtener_usuarios(), mochilas=obtener_codigos_mochilas())
             else:
-                return render_template('EditarMochila.html', datos=valor)                    
+                return render_template('EditarMochila.html', datos=valor, usuarios=obtener_usuarios(), mochilas=obtener_codigos_mochilas())                    
 @Inv.route('/buscar_herramienta', methods=['GET', 'POST'])
 @login_required
 @role_required(ROLES['Administrador'], ROLES['Almacen'])
@@ -316,8 +577,10 @@ def api_buscar():
     """Esta Funcion me permite ejecutar la busqueda parcial 
     por medio de los argumentos que obtiene constantemente"""
     termino = request.args.get('q','').strip()
-    bus=BuscarH()
-    ok,valor = bus.Buscarhe(termino,termino)
+    owner = request.args.get('owner','').strip()
+    location = request.args.get('location','').strip()
+    bus = BuscarH()
+    ok, valor = bus.Buscarhe(termino, termino, owner, location)
     if not ok:
         flash(valor,'danger')
         return jsonify({'error': valor}), 500
@@ -325,7 +588,7 @@ def api_buscar():
         return jsonify(valor)
 @Inv.route('/entra_sale', methods=['GET', 'POST'])
 @login_required
-@role_required(ROLES['Administrador'], ROLES['Almacen'])
+@role_required(ROLES['Administrador'], ROLES['Almacen'], ROLES['Instalador'])
 def entra_sale():
     """Esta funcion detecte el tipo de movimiento que se quiere realizar"""
     if request.method == 'POST':
@@ -335,6 +598,8 @@ def entra_sale():
         herramientas = request.form.getlist('herra[]')
         acciones = request.form.getlist('acciona[]')
         observaciones = request.form.getlist('observacionesa[]')
+        if es_instalador():
+            nombrer = session.get('nombre', '')
         #El bloque anterior me sirve para obtener las listas con getlist
         # ya que permite obtener varias herramientas
         mov = Movimientos()#creo mi variable para comunicarme con la funcion
@@ -346,9 +611,21 @@ def entra_sale():
             acciona = acciones[i].strip()#limpiamos los campos para evitar espacios vacios
             obsa = observaciones[i].strip()
 
+            if es_instalador() and acciona != "salida":
+                flash(f"{cherra}: Como instalador solo puedes registrar préstamos, no devoluciones ni desasignaciones", 'danger')
+                continue
+
             if not cherra:
                 # Evita procesar herramientas vacías,
                 # cada iteracion del for me permite obtener la herramienta depende la vuelta i
+                continue
+
+            # Verificar si la herramienta está dentro de una mochila
+            moviMochi = MovimientosMochilas()
+            ok_check, en_mochila = moviMochi.herramientaEnMochila(cherra)
+            
+            if en_mochila:
+                flash(f"{cherra}: Esta herramienta está dentro de una mochila y no puede ser prestada individualmente", 'danger')
                 continue
 
             ok, estado_actual = mov.estatusMov(cherra)
@@ -382,9 +659,32 @@ def entra_sale():
                         flash(f"{cherra}: {mensaje}", 'danger')
                     else:
                         flash(f"{cherra}: {mensaje}", 'success')
-                return render_template('EntradaSalida.html')
+        return render_template('EntradaSalida.html', usuarios=obtener_usuarios(), herramientas=obtener_codigos_herramientas())
     else:
-        return render_template('EntradaSalida.html')    
+        return render_template('EntradaSalida.html', usuarios=obtener_usuarios(), herramientas=obtener_codigos_herramientas())    
+
+@Inv.route('/prestamo_mochila', methods=['GET', 'POST'])
+@login_required
+@role_required(ROLES['Administrador'], ROLES['Almacen'], ROLES['Instalador'])
+def prestamo_mochila():
+    """Registra el préstamo de una mochila completa."""
+    if request.method == 'POST':
+        codigo_mochila = request.form.get('codigo_mochila', '').strip()
+        responsable = request.form.get('responsable', '').strip()
+        localidad = request.form.get('localidad', '').strip()
+
+        if es_instalador():
+            responsable = session.get('nombre', '')
+
+        if not all([codigo_mochila, responsable, localidad]):
+            flash('Debes capturar código, responsable y ubicación', 'danger')
+            return render_template('PrestamoMochila.html', usuarios=obtener_usuarios(), mochilas=obtener_codigos_mochilas())
+
+        ok, mensaje = prestar_mochila_completa(codigo_mochila, responsable, localidad)
+        flash(mensaje, 'success' if ok else 'danger')
+
+    return render_template('PrestamoMochila.html', usuarios=obtener_usuarios(), mochilas=obtener_codigos_mochilas())
+
 @Inv.route('/llenarMochila', methods=['GET', 'POST'])
 @login_required
 @role_required(ROLES['Administrador'], ROLES['Almacen'])
@@ -414,17 +714,17 @@ def llenarMochila():
 
                 if estado_actual in estatus_invalidos:
                     flash(f"El estatus es: {estado_actual}", 'danger')
-                    return render_template('LlenarMochila.html')
+                    return render_template('LlenarMochila.html', usuarios=obtener_usuarios(), herramientas=obtener_codigos_herramientas(), mochilas=obtener_codigos_mochilas())
 
             ok, mensaje = moviMochi.moviMoch(nombre, codigoKMs, codigoHERRAs, accions)
 
             if not ok:
                 flash(f"{codigoHERRAs}: {mensaje}", 'danger')
-                return render_template('LlenarMochila.html')
+                return render_template('LlenarMochila.html', usuarios=obtener_usuarios(), herramientas=obtener_codigos_herramientas(), mochilas=obtener_codigos_mochilas())
 
             flash(f"{codigoHERRAs}: {mensaje}", 'success')
 
-    return render_template('LlenarMochila.html')   
+    return render_template('LlenarMochila.html', usuarios=obtener_usuarios(), herramientas=obtener_codigos_herramientas(), mochilas=obtener_codigos_mochilas())   
 @Inv.route('/historial', methods=['GET','POST'])
 @login_required
 @role_required(ROLES['Administrador'], ROLES['Almacen'])
@@ -433,6 +733,7 @@ def historial():
     filtros = {  # inicializamos siempre
         "nombrer": "",
         "herra": "",
+        "propietario": "",
         "accion": "",
         "fechaini": "",
         "fechafin": ""
@@ -441,6 +742,7 @@ def historial():
         filtros = {
             "nombrer" : request.form.get('nombreR','').strip(),
             "herra" : request.form.get('herra','').strip(),
+            "propietario" : request.form.get('propietario','').strip(),
             "accion" : request.form.get('accion','').strip(),
             "fechaini" : request.form.get('fechaini','').strip(),
             "fechafin" : request.form.get('fechafin','').strip(),
@@ -456,6 +758,10 @@ def historial():
         if filtros["nombrer"]:
             condicion.append("person = %s")
             valor.append(filtros["nombrer"])
+        if filtros["propietario"]:
+            condicion.append("(person LIKE %s OR t.location LIKE %s OR m.observations LIKE %s)")
+            propietario_like = f"%{filtros['propietario']}%"
+            valor.extend([propietario_like, propietario_like, propietario_like])
         if filtros["accion"]:
             condicion.append("action = %s")
             valor.append(filtros["accion"])
@@ -469,22 +775,23 @@ def historial():
         ok,valores= histo.histo(filtros["herra"],condicion,valor)
         if not ok:
             flash(valores,'danger')#enviamos el error que nos regrese
-            return render_template('Historial.html',filtros=filtros)
+            return render_template('Historial.html',filtros=filtros, usuarios=obtener_usuarios())
         else:
-            return render_template('Historial.html', datos=valores, filtros=filtros)
+            return render_template('Historial.html', datos=valores, filtros=filtros, usuarios=obtener_usuarios())
     else:
-        return render_template('Historial.html', filtros=filtros)
+        return render_template('Historial.html', filtros=filtros, usuarios=obtener_usuarios())
 @Inv.route('/reporte', methods=['GET','POST'])
 @login_required
 @role_required(ROLES['Administrador'], ROLES['Almacen'])
 def reporte():
     nombrer = request.form.get('nombreR','').strip()
     herra = request.form.get('herra','').strip()
+    propietario = request.form.get('propietario','').strip()
     accion = request.form.get('accion','').strip()
     fechaini = request.form.get('fechaini','').strip()
     fechafin = request.form.get('fechafin','').strip()
 
-    if not (nombrer or herra or accion or fechaini or fechafin):
+    if not (nombrer or herra or propietario or accion or fechaini or fechafin):
         flash("Debes ingresar al menos un parametro", 'warning')
         return render_template('Historial.html', filtros=[])
 
@@ -494,6 +801,10 @@ def reporte():
     if nombrer:
         condicion.append("person = %s")
         valor.append(nombrer)
+    if propietario:
+        condicion.append("(person LIKE %s OR t.location LIKE %s OR m.observations LIKE %s)")
+        propietario_like = f"%{propietario}%"
+        valor.extend([propietario_like, propietario_like, propietario_like])
     if accion:
         condicion.append("action = %s")
         valor.append(accion)
@@ -510,8 +821,9 @@ def reporte():
         flash("No se ha podido generar el reporte", 'warning')
         return render_template('Historial.html',filtros=[])
     else:
+        fecha_actual = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
         # Renderizar HTML para PDF
-        html = render_template("ReporteHistorial.html", datos=valores)
+        html = render_template("ReporteHistorial.html", datos=valores, fecha_actual=fecha_actual)
 
         # Ruta absoluta a la carpeta src
         base_dirs = os.path.abspath(os.path.join(os.path.dirname(__file__)))
@@ -536,8 +848,9 @@ def inventario():
         inventar = Inventario()
         ok, valores = inventar.inv()
         if ok:
+            fecha_actual = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
             # Renderizar HTML para PDF
-            html = render_template("ReporteInventario.html", datos=valores)
+            html = render_template("ReporteInventario.html", datos=valores, fecha_actual=fecha_actual)
 
             # Ruta absoluta a la carpeta src
             base_dirs = os.path.abspath(os.path.join(os.path.dirname(__file__)))
@@ -559,6 +872,94 @@ def inventario():
             return render_template("Inventario.html")
     else:
         return render_template("Inventario.html")
+
+@Inv.route('/mi_inventario', methods=['GET'])
+@login_required
+@role_required(ROLES['Instalador'])
+def mi_inventario():
+    """Muestra únicamente el inventario asignado al instalador en sesión."""
+    ok, resultado = obtener_mi_inventario(session.get('nombre', ''))
+    if not ok:
+        flash(resultado, 'danger')
+        resultado = {"herramientas": [], "mochilas": []}
+    return render_template('MiInventario.html', inventario=resultado)
+
+@Inv.route('/asignaciones_permanentes', methods=['GET'])
+@login_required
+@role_required(ROLES['Administrador'], ROLES['Almacen'])
+def asignaciones_permanentes():
+    """Muestra lista de asignaciones permanentes"""
+    asig_perm = AsignacionesPermanentes()
+    ok, asignaciones = asig_perm.listar_asignaciones_permanentes()
+    
+    if not ok:
+        flash('Error al obtener asignaciones permanentes', 'danger')
+        asignaciones = []
+    
+    return render_template('AsignacionesPermanentes.html', asignaciones=asignaciones)
+
+@Inv.route('/marcar_permanente', methods=['POST'])
+@login_required
+@role_required(ROLES['Administrador'], ROLES['Almacen'])
+def marcar_permanente():
+    """Marca una herramienta como asignación permanente"""
+    codigo_herramienta = request.form.get('codigo_herramienta', '').strip()
+    responsable = request.form.get('responsable', '').strip()
+    tipo_asignacion = request.form.get('tipo_asignacion', '').strip()
+    
+    if not all([codigo_herramienta, responsable, tipo_asignacion]):
+        return jsonify({'success': False, 'message': 'Datos incompletos'}), 400
+    
+    asig_perm = AsignacionesPermanentes()
+    user_name = session.get('nombre', '')
+    ok, mensaje = asig_perm.marcar_asignacion_permanente(
+        codigo_herramienta, responsable, tipo_asignacion, user_name
+    )
+    
+    return jsonify({'success': ok, 'message': mensaje})
+
+@Inv.route('/desmarcar_permanente', methods=['POST'])
+@login_required
+@role_required(ROLES['Administrador'])
+def desmarcar_permanente():
+    """Desmarca una asignación permanente"""
+    codigo_herramienta = request.form.get('codigo_herramienta', '').strip()
+    
+    if not codigo_herramienta:
+        return jsonify({'success': False, 'message': 'Código de herramienta requerido'}), 400
+    
+    asig_perm = AsignacionesPermanentes()
+    user_name = session.get('nombre', '')
+    ok, mensaje = asig_perm.desmarcar_asignacion_permanente(codigo_herramienta, user_name)
+    
+    return jsonify({'success': ok, 'message': mensaje})
+
+@Inv.route('/verificar_asignacion_permanente', methods=['GET'])
+@login_required
+def verificar_asignacion_permanente():
+    """Verifica si una herramienta tiene asignación permanente"""
+    codigo_herramienta = request.args.get('codigo', '').strip()
+    
+    if not codigo_herramienta:
+        return jsonify({'success': False, 'has_permanent': False}), 400
+    
+    asig_perm = AsignacionesPermanentes()
+    ok, tiene_permanente = asig_perm.validar_asignacion_permanente(codigo_herramienta)
+    
+    if ok:
+        ok_info, info = asig_perm.obtener_asignacion_permanente(codigo_herramienta)
+        if ok_info:
+            return jsonify({
+                'success': True,
+                'has_permanent': True,
+                'assignment_type': info.get('assignment_type'),
+                'assigned_to': info.get('user_name') or info.get('mochila_name') or info.get('responsable_name'),
+                'assigned_at': str(info.get('assigned_at')),
+                'assigned_by': info.get('assigned_by_name')
+            })
+    
+    return jsonify({'success': True, 'has_permanent': False})
+
 @Inv.route('/logout')
 def logout():
     """Funcion para cerrar la sesion activa"""

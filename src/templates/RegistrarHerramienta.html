@@ -15,7 +15,7 @@ Registro de Herramienta
     {% elif session['rol'] == 2 %}
       <span class="navbar-text me-3 text-secondary">Rol: Almacenista</span>
     {% else %}
-      <span class="navbar-text me-3 text-secondary">Rol: Técnico</span>
+      <span class="navbar-text me-3 text-secondary">Rol: Instalador</span>
     {% endif %}
   </div>
   <form action="{{ url_for('logout') }}" method="get">
@@ -74,69 +74,114 @@ Registro de Herramienta
     {% endwith %}
 
     <form action="/regisherra" method="POST" class="bg-white p-4 shadow-sm rounded">
-      <h4 class="mb-3 text-center">Registrar Herramienta</h4>
+      <h4 class="mb-3 text-center">🔧 Registrar Nueva Herramienta</h4>
+
+      <div class="alert alert-info" role="alert">
+        <strong>ℹ️ Instrucciones:</strong>
+        <ul class="mb-0 mt-2">
+          <li><strong>Campos requeridos:</strong> Código Interno es obligatorio</li>
+          <li><strong>Códigos:</strong> Dale un identificador único a la herramienta (Ej: TOOL-001)</li>
+          <li><strong>Estado inicial:</strong> Todas las herramientas nuevas comienzan como "Operativa"</li>
+        </ul>
+      </div>
 
       <!-- Agrupa inputs verticalmente en pantallas pequeñas -->
       <div class="row g-3">
         <div class="col-md-4">
-          <label class="form-label">Nombre</label>
-          <input type="text" name="nombreh" placeholder="Nombre herramienta" class="form-control">
+          <label class="form-label"><strong>📝 Nombre</strong></label>
+          <input type="text" name="nombreh" placeholder="Ej: Destornillador Phillips" class="form-control" list="nombres-herramientas-list" required>
         </div>
         <div class="col-md-4">
-          <label class="form-label">Tipo</label>
-          <input type="text" name="tipoh" placeholder="Tipo" class="form-control">
+          <label class="form-label"><strong>🏷️ Tipo</strong></label>
+          <input type="text" name="tipoh" placeholder="Ej: Destornillador, Martillo, Taladro" class="form-control" list="tipos-herramientas-list">
         </div>
         <div class="col-md-4">
-          <label class="form-label">Marca</label>
-          <input type="text" name="brandh" placeholder="Marca" class="form-control">
+          <label class="form-label"><strong>🏭 Marca/Fabricante</strong></label>
+          <input type="text" name="brandh" placeholder="Ej: Makita, DeWalt, Stanley" class="form-control" list="marcas-herramientas-list">
         </div>
 
         <div class="col-md-4">
-          <label class="form-label">Modelo</label>
-          <input type="text" name="modeloh" placeholder="Modelo" class="form-control">
+          <label class="form-label"><strong>📦 Modelo</strong></label>
+          <input type="text" name="modeloh" placeholder="Ej: DCD791D2" class="form-control" list="modelos-herramientas-list">
         </div>
         <div class="col-md-4">
-          <label class="form-label">Serie</label>
-          <input type="text" name="serieh" placeholder="Número de serie" class="form-control">
+          <label class="form-label"><strong>🔢 Número de Serie</strong></label>
+          <input type="text" name="serieh" placeholder="Del equipo (si aplica)" class="form-control" list="series-herramientas-list">
         </div>
         <div class="col-md-4">
-          <label class="form-label">Código Interno</label>
-          <input type="text" name="codigoinh" placeholder="Código Interno" class="form-control" required>
+          <label class="form-label"><strong>🔐 Código Interno *</strong></label>
+          <input type="text" name="codigoinh" placeholder="Ej: TOOL-001 (REQUERIDO)" class="form-control" required>
         </div>
 
         <div class="col-md-6">
-          <label class="form-label">Estatus</label>
-          <select name="statush" class="form-select">
-            <option value="operativa">Operativa</option>
-            <option value="en_reparacion">En Reparación</option>
-            <option value="extraviada">Extraviada</option>
-            <option value="obsoleta">Obsoleta</option>
+          <label class="form-label"><strong>⚙️ Estado</strong></label>
+          <select name="statush" class="form-select" required>
+            <option value="operativa" selected>✅ Operativa (Disponible)</option>
+            <option value="en_reparacion">🔧 En Reparación</option>
+            <option value="extraviada">❓ Extraviada</option>
+            <option value="obsoleta">❌ Obsoleta</option>
           </select>
         </div>
 
         <div class="col-md-6">
-          <label class="form-label">Ubicación</label>
-          <input type="text" name="localidadh" placeholder="Localidad" class="form-control">
+          <label class="form-label"><strong>📍 Ubicación Inicial</strong></label>
+          <input type="text" name="localidadh" placeholder="Ej: Almacén, Bodega A, Oficina" class="form-control" list="ubicaciones-list">
         </div>
 
         <div class="col-md-6">
-          <label class="form-label">Responsable</label>
-          <input type="text" name="responsableh" placeholder="Responsable" class="form-control">
+          <label class="form-label"><strong>👤 Responsable</strong></label>
+          <input type="text" name="responsableh" placeholder="Nombre de la persona encargada" class="form-control" list="usuarios-list">
+          <datalist id="usuarios-list">
+            {% for usuario in autocompletar.responsables %}
+            <option value="{{ usuario }}">
+            {% endfor %}
+          </datalist>
         </div>
 
+        <datalist id="nombres-herramientas-list">
+          {% for nombre in autocompletar.nombres_herramientas %}
+          <option value="{{ nombre }}">
+          {% endfor %}
+        </datalist>
+        <datalist id="tipos-herramientas-list">
+          {% for tipo in autocompletar.tipos_herramientas %}
+          <option value="{{ tipo }}">
+          {% endfor %}
+        </datalist>
+        <datalist id="marcas-herramientas-list">
+          {% for marca in autocompletar.marcas_herramientas %}
+          <option value="{{ marca }}">
+          {% endfor %}
+        </datalist>
+        <datalist id="modelos-herramientas-list">
+          {% for modelo in autocompletar.modelos_herramientas %}
+          <option value="{{ modelo }}">
+          {% endfor %}
+        </datalist>
+        <datalist id="series-herramientas-list">
+          {% for serie in autocompletar.series_herramientas %}
+          <option value="{{ serie }}">
+          {% endfor %}
+        </datalist>
+        <datalist id="ubicaciones-list">
+          {% for ubicacion in autocompletar.ubicaciones %}
+          <option value="{{ ubicacion }}">
+          {% endfor %}
+        </datalist>
+
         <div class="col-md-6">
-          <label class="form-label">Precio</label>
-          <input type="number" name="precioh" min="0" step="0.01" placeholder="Precio" class="form-control">
+          <label class="form-label"><strong>💰 Precio/Valor</strong></label>
+          <input type="number" name="precioh" min="0" step="0.01" placeholder="Valor en moneda local" class="form-control">
         </div>
 
         <div class="col-12">
-          <label class="form-label">Observaciones</label>
-          <textarea name="observacionesh" class="form-control" rows="2" placeholder="Escribe observaciones..."></textarea>
+          <label class="form-label"><strong>📄 Notas/Observaciones</strong></label>
+          <textarea name="observacionesh" class="form-control" rows="2" placeholder="Agregar notas adicionales sobre la herramienta..."></textarea>
         </div>
 
         <div class="col-12">
           <button type="submit" class="btn btn-primary w-100 d-flex align-items-center justify-content-center" id="regisBtn">
-            <span id="btnText">Registrar Herramienta</span>
+            <span id="btnText">✔️ Registrar Herramienta</span>
             <div id="inlineSpinner" class="spinner-border text-light spinner-border-sm ms-2 d-none" role="status">
               <span class="visually-hidden">Loading...</span>
             </div>

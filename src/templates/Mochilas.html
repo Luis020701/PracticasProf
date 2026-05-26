@@ -15,7 +15,7 @@ Registro de Kit/Mochila
     {% elif session['rol'] == 2 %}
       <span class="navbar-text me-3 text-secondary">Rol: Almacenista</span>
     {% else %}
-      <span class="navbar-text me-3 text-secondary">Rol: Técnico</span>
+      <span class="navbar-text me-3 text-secondary">Rol: Instalador</span>
     {% endif %}
   </div>
   <form action="{{ url_for('logout') }}" method="get">
@@ -74,40 +74,59 @@ Registro de Kit/Mochila
     {% endwith %}
 
     <form action="/regis_kit" method="POST" class="bg-white p-4 shadow-sm rounded">
-      <h4 class="mb-3 text-center">Registro de kits/Mochilas</h4>
+      <h4 class="mb-3 text-center">🎒 Crear Nueva Mochila/Kit</h4>
+
+      <div class="alert alert-info" role="alert">
+        <strong>ℹ️ ¿Qué es una Mochila/Kit?</strong>
+        <ul class="mb-0 mt-2">
+          <li>Un contenedor que agrupa varias herramientas juntas</li>
+          <li>Se presta como un conjunto completo, no herramientas individuales</li>
+          <li>Las herramientas dentro de una mochila NO pueden ser prestadas por separado</li>
+        </ul>
+      </div>
 
       <!-- Agrupa inputs verticalmente en pantallas pequeñas -->
       <div class="row g-3">
         <div class="col-md-6">
-          <label class="form-label">Nombre</label>
-          <input type="text" name="nombre_kit" placeholder="Dale un nombre a tu Kit/Mochila" class="form-control">
+          <label class="form-label"><strong>📝 Nombre de la Mochila/Kit *</strong></label>
+          <input type="text" name="nombre_kit" placeholder="Ej: Kit de Electricista, Mochila Construcción" class="form-control" list="nombres-mochilas-list" required>
         </div>
         <div class="col-md-6">
-          <label class="form-label">Codigo Interno</label>
-          <input type="text" name="codigo_kit" placeholder="Dale un codigo a tu Kit/Mochila" class="form-control">
+          <label class="form-label"><strong>🔐 Código Interno *</strong></label>
+          <input type="text" name="codigo_kit" placeholder="Ej: MOC-001, KIT-HER-001" class="form-control" required>
         </div>
         <div class="col-md-6">
-          <label class="form-label">Responsable</label>
-          <input type="text" name="respos_kit" placeholder="¿Quien se hace cargo?" class="form-control">
+          <label class="form-label"><strong>👤 Responsable</strong></label>
+          <input type="text" name="respos_kit" placeholder="Persona encargada de mantener este kit" class="form-control" list="usuarios-list">
+          <datalist id="usuarios-list">
+            {% for usuario in autocompletar.responsables %}
+            <option value="{{ usuario }}">
+            {% endfor %}
+          </datalist>
+          <datalist id="nombres-mochilas-list">
+            {% for nombre in autocompletar.nombres_mochilas %}
+            <option value="{{ nombre }}">
+            {% endfor %}
+          </datalist>
         </div>
 
         <div class="col-md-6">
-          <label class="form-label">Estatus</label>
-          <select name="status_kit" class="form-select">
-            <option value="disponible">Disponible</option>
-            <option value="prestada">Prestada</option>
-            <option value="parcial">Parcial</option>
+          <label class="form-label"><strong>⚙️ Estado Inicial</strong></label>
+          <select name="status_kit" class="form-select" required>
+            <option value="disponible" selected>✅ Disponible (Vacía/Lista)</option>
+            <option value="prestada">📤 Prestada</option>
+            <option value="parcial">⚠️ Parcial (Incompleta)</option>
           </select>
         </div>
 
         <div class="col-12">
-          <label class="form-label">Descripcion</label>
-          <textarea name="descripcion_kit" class="form-control" rows="2" placeholder="Escribe una breve descripcion..."></textarea>
+          <label class="form-label"><strong>📄 Descripción de Contenido</strong></label>
+          <textarea name="descripcion_kit" class="form-control" rows="3" placeholder="Describe qué herramientas irán en este kit (Ej: Destornilladores Phillips, Martillos, Llaves inglesas, etc.)..."></textarea>
         </div>
 
         <div class="col-12">
           <button type="submit" class="btn btn-primary w-100 d-flex align-items-center justify-content-center" id="regisBtn">
-            <span id="btnText">Crear Kit/Mochila</span>
+            <span id="btnText">✔️ Crear Mochila/Kit</span>
             <div id="inlineSpinner" class="spinner-border text-light spinner-border-sm ms-2 d-none" role="status">
               <span class="visually-hidden">Loading...</span>
             </div>

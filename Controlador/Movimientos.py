@@ -5,10 +5,12 @@ from DataBase.Conexion import Conexion, Error
 @dataclasses.dataclass
 class Movimientos:
     """la clase movientos me permite implementar funciones para realizar los moviemientos deseados"""
-    def mov(self,nombre,nombrer,
-            local,accion,
-            obs,herra) -> tuple[bool, list]:
-        """Esta funcion me sirve para dar entrada o salida a la herramienta"""
+    def mov(self, nombre, nombrer, local, accion, obs, herra, rol=None) -> tuple[bool, list]:
+        """Esta funcion me sirve para dar entrada o salida a la herramienta
+        
+        Args:
+            rol: Rol del usuario (1=Administrador, 2=Almacenista, 3=Instalador). Requerido para cambios de propietario.
+        """
         db = Conexion()
         ok, Conn = db.conectar()
         if not ok:
@@ -16,46 +18,76 @@ class Movimientos:
         else:
             try:
                 cur = Conn.cursor()
-                cur1=Conn.cursor()
-                cur2=Conn.cursor()
-                sql="SELECT id FROM tools WHERE internal_code = %s AND status <> 'eliminada'"#obtengo el id de la herramienta en base al nombre
-                cur.execute(sql,(herra,))
-                res=cur.fetchone()
+                cur1 = Conn.cursor()
+                cur2 = Conn.cursor()
+                cur3 = Conn.cursor()
+                
+                sql = "SELECT id FROM tools WHERE internal_code = %s AND status <> 'eliminada'"
+                cur.execute(sql, (herra,))
+                res = cur.fetchone()
                 if res is not None:
-                    idH=res[0]
-                    sql1="SELECT id FROM user WHERE full_name = %s"#obtengo el id del usuario en base al nombre
-                    cur1.execute(sql1,(nombre,))
-                    res1=cur1.fetchone()
+                    idH = res[0]
+                    
+                    # Validar asignación permanente si el cambio es de propietario
+                    if accion == "cambio de propietario":
+                        sql_check_permanent = """
+                            SELECT pa.id, COALESCE(u.full_name, pa.responsable_name), m.nombre 
+                            FROM permanent_assignments pa
+                            LEFT JOIN user u ON pa.user_id = u.id
+                            LEFT JOIN mochilas m ON pa.mochila_id = m.id_mochila
+                            WHERE pa.tool_id = %s AND pa.active = 1
+                        """
+                        cur3.execute(sql_check_permanent, (idH,))
+                        res_perm = cur3.fetchone()
+                        
+                        if res_perm is not None:
+                            # Verificar permisos para cambiar asignación permanente
+                            allowed_roles = [1, 2]  # 1=Administrador, 2=Almacen
+                            if not rol or rol not in allowed_roles:
+                                assigned_to = res_perm[1] if res_perm[1] else res_perm[2]
+                                return False, f"Acceso denegado. Herramienta asignada permanentemente a {assigned_to}. Solo administradores o almacenistas pueden cambiarla."
+                    
+                    sql1 = "SELECT id FROM user WHERE full_name = %s"
+                    cur1.execute(sql1, (nombre,))
+                    res1 = cur1.fetchone()
                     if res1 is not None:
                         idUs = res1[0]
-                        sql2= "INSERT INTO movements(tool_id,user_id,action,person,location,observations,timestamp) VALUES(%s,%s,%s,%s,%s,%s,%s)"
-                        datos=(
+                        
+                        # Determinar tipo de asignación
+                        assignment_type = 'permanente' if accion == "cambio de propietario" else 'temporal'
+                        
+                        sql2 = "INSERT INTO movements(tool_id,user_id,action,person,location,observations,timestamp,assignment_type) VALUES(%s,%s,%s,%s,%s,%s,%s,%s)"
+                        datos = (
                             idH,
                             idUs,
                             accion,
                             nombrer,
                             local,
                             obs,
-                            datetime.now()
+                            datetime.now(),
+                            assignment_type
                         )
-                        cur2.execute(sql2,datos)
+                        cur2.execute(sql2, datos)
                         Conn.commit()
-                        if accion=="entrada":
+                        if accion == "entrada":
                             return True, "Devuelta con exito"
-                        elif accion=="salida":
+                        elif accion == "salida":
                             return True, "Prestamo exitoso"
+                        else:
+                            return True, "Movimiento registrado"
                     else:
                         return False, 'No se encontro el usuario'
                 else:
                     return False, 'No se encontro la herramienta'
 
             except Error as e:
-                Conn.rollback()#Revierto los cambios si hay error
+                Conn.rollback()
                 return False, str(e)
             finally:
                 cur.close()
                 cur1.close()
                 cur2.close()
+                cur3.close()
                 Conn.close()
     
     def estatusMov(self,herra) -> tuple[bool, list]:
